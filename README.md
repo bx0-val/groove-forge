@@ -1,15 +1,27 @@
 # Groove Forge
 
-Groove Forge is a browser-based MIDI piano trainer for feel-first improvisation. It teaches through constrained runs instead of open noodling: every score category maps to a concrete practice behavior.
+Groove Forge is a browser-based MIDI piano trainer for feel-first improvisation. It now teaches through a guided lesson loop instead of dropping the player into vague jamming.
 
 ## What It Teaches
 
-- Echoing and varying short phrases by ear
+- Hearing, copying, and varying short teacher phrases by ear
 - Staying inside a small note palette
 - Landing on target notes over a color or mode
 - Leaving space instead of filling every beat
 - Reusing motifs so accidents become vocabulary
 - Shaping dynamics with MIDI velocity
+
+## Practice Loop
+
+Each lesson follows the same sequence:
+
+```text
+learn the move -> hear the teacher phrase -> copy it -> vary one thing -> review what happened
+```
+
+Scores are not generic points. Copy mode checks whether the player matched the model phrase. Variation mode checks whether the take stayed in the color, landed somewhere intentional, left space, reused a motif, and shaped touch.
+
+The sound engine uses a soft electric-piano Web Audio synth with bass and pulse cues. It is still browser-native, but it is no longer the harsh placeholder beep from the first pass.
 
 ## MIDI Support
 
@@ -35,10 +47,10 @@ npm run build
 
 ## Design Rationale
 
-The core loop is:
+The product rule is:
 
 ```text
-hear -> constrain -> riff -> get specific feedback -> save the best moment -> reuse it
+no score before a model, no riff before a constraint, no reward without a reason
 ```
 
-Free play is not the teacher. Constraints, comparison, repetition, and retained motifs are the teacher. The game layer exists to make that practice loop feel immediate and repeatable.
+Free play is not the teacher. Explanation, demonstration, copying, variation, and retained motifs are the teacher. The game layer exists to make that practice loop feel immediate and repeatable.

@@ -160,7 +160,12 @@ button {
 .score-card,
 .journal,
 .keyboard-wrap,
-.groove-board {
+.groove-board,
+.coach-board,
+.move-card,
+.listen-card,
+.steps-card,
+.reflection-card {
   border: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
   border-radius: 8px;
@@ -181,6 +186,10 @@ button {
 .midi-panel p,
 .score-card p,
 .feedback-row p,
+.move-card p,
+.listen-card li,
+.steps-card li,
+.reflection-card p,
 .empty {
   color: var(--muted);
   font-size: 13px;
@@ -190,7 +199,7 @@ button {
 .stage {
   padding: 24px;
   display: grid;
-  grid-template-rows: auto minmax(420px, 1fr) auto;
+  grid-template-rows: auto auto minmax(330px, 1fr) auto;
   gap: 18px;
   min-width: 0;
 }
@@ -269,7 +278,85 @@ button {
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: 16px;
-  min-height: 420px;
+  min-height: 360px;
+}
+
+.coach-board {
+  padding: 14px;
+}
+
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.step-pill {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.step-pill.active {
+  border-color: rgba(48, 214, 189, 0.65);
+  background: rgba(48, 214, 189, 0.11);
+}
+
+.step-pill span,
+.step-pill small {
+  display: block;
+}
+
+.step-pill span {
+  font-weight: 850;
+}
+
+.step-pill small {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.coach-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 10px;
+}
+
+.move-card,
+.listen-card,
+.steps-card,
+.reflection-card {
+  padding: 14px;
+  box-shadow: none;
+}
+
+.move-card h2,
+.listen-card h3,
+.steps-card h3,
+.reflection-card h3 {
+  margin: 0;
+}
+
+.listen-card ul,
+.steps-card ol {
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
+.listen-card li,
+.steps-card li {
+  margin: 6px 0;
+}
+
+.coach-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 13px;
 }
 
 .board-header {
@@ -305,6 +392,7 @@ button {
 .lane {
   position: relative;
   overflow: hidden;
+  min-height: 210px;
   border-radius: 8px;
   border: 1px solid rgba(247, 241, 232, 0.12);
   background:
@@ -357,6 +445,13 @@ button {
 
 .note-chip.out {
   background: var(--red);
+}
+
+.note-chip.ghost {
+  background: transparent;
+  color: rgba(247, 241, 232, 0.72);
+  border: 1px dashed rgba(242, 174, 69, 0.72);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.14);
 }
 
 @keyframes pop {
@@ -543,6 +638,10 @@ button {
   padding: 14px;
 }
 
+.reflection-card {
+  box-shadow: none;
+}
+
 .riff-row {
   grid-template-columns: 1fr auto;
   padding: 10px;
@@ -562,8 +661,13 @@ button {
   }
 
   .journal,
-  .actions-grid {
+  .actions-grid,
+  .reflection-card {
     grid-column: 1 / -1;
+  }
+
+  .coach-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -593,12 +697,28 @@ button {
   }
 
   .constraint-strip,
-  .feedback-panel {
+  .feedback-panel,
+  .stepper {
     grid-template-columns: 1fr;
   }
 
+  .step-pill {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .step-pill small {
+    margin-top: 0;
+  }
+
   .groove-board {
-    min-height: 360px;
+    min-height: 460px;
+  }
+
+  .lane {
+    min-height: 180px;
   }
 
   .keyboard {

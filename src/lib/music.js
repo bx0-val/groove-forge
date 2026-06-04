@@ -1,4 +1,15 @@
 export const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const FLAT_TO_SHARP = {
+  Db: "C#",
+  Eb: "D#",
+  Gb: "F#",
+  Ab: "G#",
+  Bb: "A#"
+};
+
+export function normalizePitchClass(value) {
+  return FLAT_TO_SHARP[value] ?? value;
+}
 
 export function midiToNote(midi) {
   const name = NOTE_NAMES[midi % 12];
@@ -7,9 +18,9 @@ export function midiToNote(midi) {
 }
 
 export function noteToMidi(note) {
-  const match = note.match(/^([A-G]#?)(-?\d)$/);
+  const match = note.match(/^([A-G][#b]?)(-?\d)$/);
   if (!match) return null;
-  return (Number(match[2]) + 1) * 12 + NOTE_NAMES.indexOf(match[1]);
+  return (Number(match[2]) + 1) * 12 + NOTE_NAMES.indexOf(normalizePitchClass(match[1]));
 }
 
 export function normalizeMidiMessage(message) {
@@ -59,5 +70,10 @@ export function createNoteEvent(midi, velocity = 92, source = "simulator") {
 
 export function pitchClass(noteOrMidi) {
   if (typeof noteOrMidi === "number") return NOTE_NAMES[noteOrMidi % 12];
-  return noteOrMidi.replace(/-?\d$/, "");
+  return normalizePitchClass(noteOrMidi.replace(/-?\d$/, ""));
+}
+
+export function pitchInSet(noteOrMidi, pitchSet) {
+  const normalized = pitchClass(noteOrMidi);
+  return pitchSet.map(normalizePitchClass).includes(normalized);
 }

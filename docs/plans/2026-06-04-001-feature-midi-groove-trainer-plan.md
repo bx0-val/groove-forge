@@ -1,7 +1,7 @@
 ---
 date: 2026-06-04
 topic: midi-groove-trainer
-status: active
+status: completed
 origin: user request in current thread
 ---
 

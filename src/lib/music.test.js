@@ -5,6 +5,7 @@ describe("music helpers", () => {
   it("converts between MIDI numbers and note names", () => {
     expect(midiToNote(60)).toBe("C4");
     expect(noteToMidi("F#3")).toBe(54);
+    expect(noteToMidi("Eb4")).toBe(63);
   });
 
   it("normalizes MIDI note on and note off messages", () => {
