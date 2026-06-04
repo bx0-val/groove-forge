@@ -10,6 +10,8 @@
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "smplr": "^0.26.0",
+    "tonal": "^6.4.3",
     "vite": "latest"
   },
   "devDependencies": {

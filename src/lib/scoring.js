@@ -46,6 +46,107 @@ function copyScore(notes, lesson, startedAt, beatMs) {
   };
 }
 
+function oneCorrection({ empty, notes, lesson, mode, echo, paletteScore, targetScore, spaceScore, motifScore, dynamicsScore, density }) {
+  if (empty) {
+    return {
+      type: "listen",
+      title: "Hear it before touching keys",
+      action: "Press Hear teacher, sing the first three notes, then play only the first note back.",
+      why: "The app cannot train your ear if the model phrase never enters your head first.",
+      drill: "Hear, hum, play the first note, stop."
+    };
+  }
+
+  if (notes.length > lesson.demoPhrase.length + 3) {
+    return {
+      type: "space",
+      title: "Cut the extra notes",
+      action: "Play the model phrase with two fewer notes than you want to add. Silence counts.",
+      why: "Overplaying hides the source phrase, so the take becomes random motion instead of vocabulary.",
+      drill: lesson.drillGoal ?? "Play the first half of the model, then leave a full beat of silence."
+    };
+  }
+
+  if (paletteScore < 75) {
+    return {
+      type: "palette",
+      title: "Stay inside the source color",
+      action: `Use only ${lesson.palette.join(", ")} until the phrase sounds boring.`,
+      why: "The note set is the style boundary. Breaking it too early turns practice into guessing.",
+      drill: `Play only ${lesson.palette.slice(0, 4).join("-")} and stop.`
+    };
+  }
+
+  if (density > 1.2) {
+    return {
+      type: "space",
+      title: "Cut the extra notes",
+      action: "Play the model phrase with two fewer notes than you want to add. Silence counts.",
+      why: "Overplaying hides the source phrase, so the take becomes random motion instead of vocabulary.",
+      drill: lesson.drillGoal ?? "Play the first half of the model, then leave a full beat of silence."
+    };
+  }
+
+  if (mode === "copy" && echo.matches < lesson.demoPhrase.length) {
+    const expected = lesson.demoPhrase[echo.matches]?.note?.replace(/\d$/, "") ?? lesson.demoPhrase[0].note.replace(/\d$/, "");
+    return {
+      type: "copy",
+      title: "Copy before remixing",
+      action: `Your next note should be ${expected}. Replay the teacher and match the phrase up to that note.`,
+      why: "Copying builds vocabulary. Remixing before copying turns into note hunting.",
+      drill: `Play only up to ${expected}, then stop.`
+    };
+  }
+
+  if (targetScore < 60) {
+    return {
+      type: "target",
+      title: "Land on the important note",
+      action: `Aim the ending at ${lesson.targets.join(" or ")} and hold it long enough to hear the color.`,
+      why: "Jazz lines sound intentional when important tones arrive on purpose.",
+      drill: lesson.drillGoal ?? `Play one short phrase that ends on ${lesson.targets[0]}.`
+    };
+  }
+
+  if (spaceScore < 55) {
+    return {
+      type: "space",
+      title: "Leave the breath intact",
+      action: "Play the phrase, then wait a full beat before answering.",
+      why: "The pause is part of the source material; without it the phrase loses shape.",
+      drill: "Play three notes, count one beat of silence, then answer with one note."
+    };
+  }
+
+  if (motifScore < 45 && mode !== "copy") {
+    return {
+      type: "motif",
+      title: "Bring back the source idea",
+      action: "Repeat one rhythm or two-note shape from the model before inventing anything new.",
+      why: "Variation works when the listener can still recognize what was varied.",
+      drill: lesson.drillGoal ?? "Repeat the first two notes twice with different touch."
+    };
+  }
+
+  if (dynamicsScore < 35 && notes.length > 1) {
+    return {
+      type: "touch",
+      title: "Shape the phrase with touch",
+      action: "Play the question softer and the answer slightly stronger.",
+      why: "Touch makes a copied phrase sound like music instead of a typed sequence.",
+      drill: "Same notes twice: first soft, second stronger."
+    };
+  }
+
+  return {
+    type: "success",
+    title: mode === "copy" ? "Copied. Now steal it." : "Good variation. Keep it.",
+    action: mode === "copy" ? lesson.varyGoal : lesson.reflection,
+    why: "The take preserved the source behavior well enough to move from copying into controlled variation.",
+    drill: lesson.remixPrompts?.[0] ?? lesson.drillGoal ?? "Change one detail and replay the comparison."
+  };
+}
+
 export function scoreTake(events, lesson, startedAt, mode = "vary") {
   const notes = events.filter((event) => event.type === "noteon");
   const weights = lesson.scoringWeights;
@@ -120,20 +221,23 @@ export function scoreTake(events, lesson, startedAt, mode = "vary") {
       .reduce((sum, category) => sum + category.score * weights[category.id], 0) / totalWeight
   );
 
-  const nextStep =
-    empty
-      ? "Press Hear first, hum the phrase, then play only the model notes."
-      : mode === "copy" && echo.matches >= lesson.demoPhrase.length
-        ? lesson.reflection
-      : mode === "copy" && echo.matches < lesson.demoPhrase.length
-        ? "Stay in copy mode until the model phrase feels boring. Then vary it."
-      : score > 82
-          ? lesson.reflection
-          : score > 62
-            ? mode === "copy" ? "Copy again with fewer timing drifts." : "Keep the same idea and move only the ending."
-            : "Slow down: sing it, play it, then leave a full beat of silence.";
+  const correction = oneCorrection({
+    empty,
+    notes,
+    lesson,
+    mode,
+    echo,
+    paletteScore,
+    targetScore,
+    spaceScore,
+    motifScore,
+    dynamicsScore,
+    density
+  });
 
-  return { score, categories, nextStep, noteCount: notes.length, echoMatches: echo.matches };
+  const nextStep = correction.action;
+
+  return { score, categories, nextStep, correction, noteCount: notes.length, echoMatches: echo.matches };
 }
 
 export function phraseToMidiNotes(phrase) {

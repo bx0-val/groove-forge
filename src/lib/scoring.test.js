@@ -15,10 +15,25 @@ function phraseEvent(note, timestamp, velocity = 90) {
 }
 
 describe("scoreTake", () => {
+  it("keeps the v3 mission catalog source-aware", () => {
+    lessons.forEach((item) => {
+      expect(item.source).toMatchObject({
+        name: expect.any(String),
+        url: expect.stringMatching(/^https:\/\//),
+        license: expect.any(String),
+        adaptation: expect.any(String)
+      });
+      expect(item.earCheck.options.length).toBeGreaterThanOrEqual(3);
+      expect(item.anatomy.length).toBeGreaterThan(0);
+      expect(item.drillGoal).toBeTruthy();
+    });
+  });
+
   it("does not award points for an empty take", () => {
     const result = scoreTake([], lesson, 1000);
     expect(result.score).toBe(0);
     expect(result.categories.every((category) => category.score === 0)).toBe(true);
+    expect(result.correction.type).toBe("listen");
   });
 
   it("rewards constrained target-note playing", () => {
@@ -26,8 +41,8 @@ describe("scoreTake", () => {
       [
         event(62, "D", 1000, 60),
         event(65, "F", 1600, 82),
-        event(69, "A", 2200, 104),
-        event(65, "F", 2800, 76)
+        event(71, "B", 2200, 104),
+        event(64, "E", 2800, 76)
       ],
       lesson,
       1000
@@ -49,7 +64,8 @@ describe("scoreTake", () => {
 
     expect(result.echoMatches).toBe(lesson.demoPhrase.length);
     expect(result.categories.find((category) => category.id === "echo").score).toBeGreaterThan(90);
-    expect(result.nextStep).toBe(lesson.reflection);
+    expect(result.correction.type).toBe("success");
+    expect(result.nextStep).toBe(lesson.varyGoal);
   });
 
   it("penalizes notes outside the palette", () => {
@@ -64,5 +80,17 @@ describe("scoreTake", () => {
     );
 
     expect(result.categories.find((category) => category.id === "palette").score).toBeLessThan(50);
+    expect(result.correction.type).toBe("palette");
+  });
+
+  it("turns dense wandering into a space microdrill", () => {
+    const result = scoreTake(
+      Array.from({ length: 14 }, (_, index) => event(62 + (index % 5), "D", 1000 + index * 110)),
+      lesson,
+      1000
+    );
+
+    expect(result.correction.type).toBe("space");
+    expect(result.correction.drill).toBeTruthy();
   });
 });

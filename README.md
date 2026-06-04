@@ -1,27 +1,30 @@
 # Groove Forge
 
-Groove Forge is a browser-based MIDI piano trainer for feel-first improvisation. It now teaches through a guided lesson loop instead of dropping the player into vague jamming.
+Groove Forge is a browser-based MIDI piano trainer for feel-first improvisation. It now teaches through source-driven missions: hear an attributed musical idea, answer an ear check, copy the phrase, compare your take against the teacher, fix one thing, then remix.
 
 ## What It Teaches
 
-- Hearing, copying, and varying short teacher phrases by ear
-- Staying inside a small note palette
-- Landing on target notes over a color or mode
-- Leaving space instead of filling every beat
-- Reusing motifs so accidents become vocabulary
-- Shaping dynamics with MIDI velocity
+- BopLand-style ii-V-I vocabulary and short reshufflable lick fragments
+- Open Music Theory guide-tone and jazz-color concepts
+- jazznet-style chord/progression target-note practice
+- Call-response phrasing, silence, and breath
+- Modal-cell repetition and restraint
+- A/B teacher-vs-player comparison
+- One-correction microdrills
 
 ## Practice Loop
 
-Each lesson follows the same sequence:
+Each mission follows the same sequence:
 
 ```text
-learn the move -> hear the teacher phrase -> copy it -> vary one thing -> review what happened
+source -> hear -> ear check -> copy -> compare -> fix -> twist
 ```
 
-Scores are not generic points. Copy mode checks whether the player matched the model phrase. Variation mode checks whether the take stayed in the color, landed somewhere intentional, left space, reused a motif, and shaped touch.
+The app hides model note names until the player has listened or answered the ear check. Copy and variation runs are disabled until the model has been heard.
 
-The sound engine uses a soft electric-piano Web Audio synth with bass and pulse cues. It is still browser-native, but it is no longer the harsh placeholder beep from the first pass.
+Scores are not generic points. Copy mode checks whether the player matched the model phrase. Variation mode checks whether the take stayed in the color, landed somewhere intentional, left space, reused a motif, and shaped touch. Every run also returns a single correction with an action and microdrill.
+
+The sound engine now uses `smplr` sample-based instruments first: a sampled acoustic grand piano, sampled pizzicato bass, and TR-808 pulse/drum cues. The old browser-native synth remains only as a failure fallback, and teacher playback waits for samples before starting.
 
 ## MIDI Support
 
@@ -54,3 +57,9 @@ no score before a model, no riff before a constraint, no reward without a reason
 ```
 
 Free play is not the teacher. Explanation, demonstration, copying, variation, and retained motifs are the teacher. The game layer exists to make that practice loop feel immediate and repeatable.
+
+## Source-First Direction
+
+The app should stop inventing every musical and audio primitive from scratch. Future content should mine legal/open sources such as BopLand jazz licks, jazznet piano-pattern MIDI, Jazzomat/Weimar transcription analysis, Impro-Visor grammars, and Open Music Theory explanations, then adapt those into tiny teachable missions with attribution and license notes.
+
+Current missions include source metadata in the app: source name, source URL, license, and the adaptation made for beginner piano practice.

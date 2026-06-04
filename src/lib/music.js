@@ -1,3 +1,5 @@
+import { Note } from "tonal";
+
 export const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const FLAT_TO_SHARP = {
   Db: "C#",
@@ -18,9 +20,7 @@ export function midiToNote(midi) {
 }
 
 export function noteToMidi(note) {
-  const match = note.match(/^([A-G][#b]?)(-?\d)$/);
-  if (!match) return null;
-  return (Number(match[2]) + 1) * 12 + NOTE_NAMES.indexOf(normalizePitchClass(match[1]));
+  return Note.midi(note) ?? null;
 }
 
 export function normalizeMidiMessage(message) {
@@ -70,10 +70,18 @@ export function createNoteEvent(midi, velocity = 92, source = "simulator") {
 
 export function pitchClass(noteOrMidi) {
   if (typeof noteOrMidi === "number") return NOTE_NAMES[noteOrMidi % 12];
-  return normalizePitchClass(noteOrMidi.replace(/-?\d$/, ""));
+  return normalizePitchClass(Note.pitchClass(noteOrMidi) || noteOrMidi.replace(/-?\d$/, ""));
 }
 
 export function pitchInSet(noteOrMidi, pitchSet) {
   const normalized = pitchClass(noteOrMidi);
   return pitchSet.map(normalizePitchClass).includes(normalized);
+}
+
+export function transposeNote(note, interval) {
+  return Note.transpose(note, interval);
+}
+
+export function transposePhrase(phrase, interval) {
+  return phrase.map((item) => ({ ...item, note: transposeNote(item.note, interval) }));
 }
