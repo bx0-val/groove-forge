@@ -710,6 +710,8 @@ function PracticeSurface({
           startedAt={startedAt}
           isCountingIn={isCountingIn}
           countInBeat={countInBeat}
+          demoPlaying={demoPlaying}
+          demoProgress={demoProgress}
         />
 
         <div className="constraint-strip">
@@ -723,12 +725,9 @@ function PracticeSurface({
       <VirtualKeyboard lesson={practiceLesson} onNote={onScreenNote} />
 
       <div className="coach-actions">
-        <button className={`primary-button hear-button ${demoPlaying ? "playing" : ""}`} onClick={onDemo}>
+        <button className="primary-button" onClick={onDemo}>
           <Headphones size={16} />
-          <span>{demoPlaying ? "Playing" : "Hear"}</span>
-          <span className="playback-bar" aria-hidden="true">
-            <span style={{ width: `${demoProgress * 100}%` }} />
-          </span>
+          {demoPlaying ? "Playing" : "Hear"}
         </button>
         <button className="secondary-button" onClick={onCopy} disabled={!canPractice}>
           <Play size={16} />
@@ -859,22 +858,33 @@ function GuideDrawer({ title, icon, tip, children }) {
   );
 }
 
-function GrooveLane({ events, lesson, phraseNotes, notesRevealed, progressRatio, runLength, startedAt, isCountingIn, countInBeat }) {
+function GrooveLane({ events, lesson, phraseNotes, notesRevealed, progressRatio, runLength, startedAt, isCountingIn, countInBeat, demoPlaying, demoProgress }) {
   const totalBeats = lesson.bars * 4;
+  const playheadProgress = demoPlaying ? demoProgress : progressRatio;
   return (
-    <div className={`lane ${isCountingIn ? "counting-in" : ""}`} aria-label="Groove lane">
-      <div className="playhead" style={{ left: `${progressRatio * 100}%` }} />
+    <div className={`lane ${isCountingIn ? "counting-in" : ""} ${demoPlaying ? "track-listening" : ""}`} aria-label="Groove lane">
+      {demoPlaying && (
+        <div className="track-playback" style={{ width: `${demoProgress * 100}%` }}>
+          <span>Hear playback</span>
+        </div>
+      )}
+      <div className="playhead" style={{ left: `${playheadProgress * 100}%` }} />
       {isCountingIn && (
-        <div className="count-in-overlay">
-          <span>Four-beat count-in</span>
-          <strong>{countInBeat}</strong>
-          <div className="count-in-beats" aria-hidden="true">
-            {Array.from({ length: COUNT_IN_BEATS }, (_, index) => {
-              const beat = index + 1;
-              return <span className={beat === countInBeat ? "active" : beat < countInBeat ? "done" : ""} key={beat}>{beat}</span>;
-            })}
-          </div>
-          <em>Scoring starts on the next beat 1.</em>
+        <div className="track-count-in" aria-label="Four-beat count-in">
+          <em>Count in</em>
+          {Array.from({ length: COUNT_IN_BEATS }, (_, index) => {
+            const beat = index + 1;
+            return (
+              <span
+                className={`count-beat ${beat === countInBeat ? "active" : beat < countInBeat ? "done" : ""}`}
+                key={beat}
+                style={{ left: `${((beat - 0.5) / totalBeats) * 100}%` }}
+              >
+                {beat}
+              </span>
+            );
+          })}
+          <strong>play on the next 1</strong>
         </div>
       )}
       {Array.from({ length: 8 }, (_, bar) => (

@@ -984,57 +984,83 @@ button {
   opacity: 0.42;
 }
 
-.count-in-overlay {
+.lane.track-listening .playhead {
+  background: var(--teal);
+  box-shadow: 0 0 22px rgba(48, 214, 189, 0.72);
+}
+
+.track-playback {
   position: absolute;
-  inset: 0;
-  z-index: 5;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 6px;
-  color: var(--text);
-  background: rgba(10, 13, 13, 0.72);
-  text-align: center;
+  inset: 0 auto 0 0;
+  z-index: 1;
+  min-width: 0;
+  background: linear-gradient(90deg, rgba(48, 214, 189, 0.22), rgba(48, 214, 189, 0.04));
+  border-right: 1px solid rgba(48, 214, 189, 0.74);
   pointer-events: none;
 }
 
-.count-in-overlay span,
-.count-in-overlay em {
+.track-playback span {
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  color: var(--teal);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.track-count-in {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: linear-gradient(90deg, rgba(242, 174, 69, 0.14), rgba(10, 13, 13, 0.2) 52%, transparent);
+  color: var(--text);
+  pointer-events: none;
+}
+
+.track-count-in em,
+.track-count-in strong {
+  position: absolute;
+  left: 12px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
-.count-in-overlay strong {
+.track-count-in em {
+  top: 10px;
+}
+
+.track-count-in strong {
+  bottom: 12px;
   color: var(--amber);
-  font-size: clamp(54px, 8vw, 88px);
-  line-height: 0.9;
-  font-variant-numeric: tabular-nums;
 }
 
-.count-in-beats {
-  display: grid;
-  grid-template-columns: repeat(4, 34px);
-  gap: 8px;
-}
-
-.count-in-beats span {
-  height: 34px;
-  border: 1px solid rgba(247, 241, 232, 0.14);
+.count-beat {
+  position: absolute;
+  top: 50%;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(247, 241, 232, 0.18);
   border-radius: 8px;
   display: grid;
   place-items: center;
+  transform: translate(-50%, -50%);
   color: var(--muted);
   background: rgba(0, 0, 0, 0.28);
+  font-size: 18px;
   font-weight: 900;
+  font-variant-numeric: tabular-nums;
 }
 
-.count-in-beats span.done {
+.count-beat.done {
   color: var(--teal);
   border-color: rgba(48, 214, 189, 0.45);
 }
 
-.count-in-beats span.active {
+.count-beat.active {
   color: #101314;
   border-color: rgba(242, 174, 69, 0.8);
   background: var(--amber);
@@ -1661,27 +1687,6 @@ button {
   justify-content: start;
   text-align: left;
   font-weight: 850;
-}
-
-.hear-button .playback-bar {
-  grid-column: 1 / -1;
-  height: 5px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(13, 18, 18, 0.28);
-}
-
-.hear-button .playback-bar span {
-  display: block;
-  height: 100%;
-  width: 0;
-  border-radius: inherit;
-  background: rgba(13, 18, 18, 0.68);
-  transition: width 80ms linear;
-}
-
-.hear-button:not(.playing) .playback-bar {
-  opacity: 0;
 }
 
 .guidance-dock {
