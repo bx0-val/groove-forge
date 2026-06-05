@@ -3,9 +3,11 @@ import {
   BookOpen,
   Cable,
   CheckCircle2,
+  ChevronDown,
   Circle,
   Disc3,
   Eraser,
+  EyeOff,
   Gamepad2,
   Gauge,
   Headphones,
@@ -114,6 +116,7 @@ export default function App() {
   const [events, setEvents] = useState([]);
   const [lastScore, setLastScore] = useState(null);
   const [pulseOn, setPulseOn] = useState(true);
+  const [focusMode, setFocusMode] = useState(false);
   const [demoPlaying, setDemoPlaying] = useState(false);
   const [coachNote, setCoachNote] = useState("Start by hearing the model phrase. Your job is to copy before you decorate.");
   const [heardLessons, setHeardLessons] = useState({});
@@ -380,7 +383,7 @@ export default function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell ${focusMode ? "focus-mode" : ""}`}>
       <aside className="lesson-rail" aria-label="Lessons">
         <div className="brand">
           <div className="brand-mark"><Waves size={22} /></div>
@@ -435,6 +438,9 @@ export default function App() {
             <p>{lesson.level} - {lesson.subtitle}</p>
           </div>
           <div className="topbar-actions">
+            <button className={`icon-toggle ${focusMode ? "on" : ""}`} onClick={() => setFocusMode((value) => !value)} title="Toggle focus mode">
+              <EyeOff size={18} />
+            </button>
             <button className={`icon-toggle ${pulseOn ? "on" : ""}`} onClick={() => setPulseOn((value) => !value)} title="Toggle pulse">
               <Volume2 size={18} />
             </button>
@@ -471,6 +477,7 @@ export default function App() {
           activeRoundId={activeRoundId}
           roundResults={roundResults}
           mastery={mastery}
+          onNextRep={() => startWorkoutRound(mastery.nextRound)}
           canPractice={heardDemo}
           onEarAnswer={answerEarCheck}
           heardDemo={heardDemo}
@@ -581,6 +588,7 @@ function LessonCoach({
   onWorkoutRound,
   activeRoundId,
   roundResults,
+  onNextRep,
   canPractice,
   onEarAnswer,
   heardDemo,
@@ -590,23 +598,131 @@ function LessonCoach({
 }) {
   const selectedEar = earAnswer !== null ? lesson.earCheck.options[earAnswer] : null;
   const earCorrect = earAnswer === lesson.earCheck.answer;
+  const activeRound = workoutRounds.find((round) => round.id === activeRoundId);
 
   return (
     <section className="coach-board">
-      <div className="stepper" aria-label="Lesson steps">
-        {lessonSteps.map((step) => (
-          <div className={`step-pill ${activeStep === step.id ? "active" : ""}`} key={step.id}>
-            <span>{step.label}</span>
-            <small>{step.verb}</small>
+      <div className="rep-cockpit">
+        <div className="rep-main">
+          <div className="source-kicker">{lesson.world}</div>
+          <h2>{activeRound ? activeRound.title : practiceLesson.activeVariant?.title ?? "Teacher lick"}</h2>
+          <p>{activeRound?.instruction(practiceLesson) ?? practiceLesson.activeVariant?.rule ?? lesson.stealThis}</p>
+          <div className="rep-hints">
+            <Tooltip label="Form" tip="The current version of the lick you are practicing.">
+              {practiceLesson.activeVariant?.label ?? "Full"}
+            </Tooltip>
+            <Tooltip label="Pocket" tip="How the lick should sit against the groove.">
+              {lesson.groove.swing}
+            </Tooltip>
+            <Tooltip label="Target" tip="Land on one of these notes so the phrase sounds intentional.">
+              {practiceLesson.targets.join(" / ")}
+            </Tooltip>
+            {lesson.taste?.touch && (
+              <Tooltip label="Touch" tip="The hand-feel to aim for while playing.">
+                {lesson.taste.touch}
+              </Tooltip>
+            )}
           </div>
-        ))}
+          <div className="coach-actions">
+            <button className="primary-button" onClick={onDemo}>
+              <Headphones size={16} />
+              {demoPlaying ? "Playing" : "Hear"}
+            </button>
+            <button className="secondary-button" onClick={onCopy} disabled={!canPractice}>
+              <Play size={16} />
+              Copy
+            </button>
+            <button className="secondary-button" onClick={onNextRep}>
+              <Target size={16} />
+              Next rep
+            </button>
+            <button className="secondary-button" onClick={onVary} disabled={!canPractice}>
+              <Sparkles size={16} />
+              Twist
+            </button>
+          </div>
+        </div>
+
+        <div className="rep-side">
+          <div className="stepper compact" aria-label="Lesson steps">
+            {lessonSteps.map((step) => (
+              <div className={`step-pill ${activeStep === step.id ? "active" : ""}`} key={step.id} title={step.verb}>
+                <span>{step.label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="ear-check-inline">
+            <strong>Ear check</strong>
+            <p>{heardDemo ? lesson.earCheck.question : "Hear the phrase before choosing."}</p>
+            <div className="ear-options">
+              {lesson.earCheck.options.map((option, index) => (
+                <button
+                  className={`ear-option ${earAnswer === index ? "selected" : ""} ${earAnswer === index && earCorrect ? "correct" : ""}`}
+                  disabled={!heardDemo}
+                  key={option}
+                  onClick={() => onEarAnswer(index)}
+                  title="Ear checks unlock labels by making you listen first."
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+            {selectedEar && <small>{earCorrect ? lesson.earCheck.success : lesson.earCheck.miss}</small>}
+          </div>
+        </div>
       </div>
 
-      <div className="coach-grid">
-        <article className="source-card">
-          <div className="source-kicker">{lesson.world}</div>
-          <h3>Steal this move</h3>
-          <p>{lesson.stealThis}</p>
+      <div className="guidance-dock">
+        <GuideDrawer title="Choose Lick Form" icon={<Disc3 size={16} />} tip="Switch forms when you want to isolate a smaller version of the same idea.">
+          <div className="form-options compact-list">
+            {phraseVariants.map((variant) => (
+              <button
+                className={`form-option ${variant.id === selectedVariantId ? "active" : ""}`}
+                key={variant.id}
+                onClick={() => onVariant(variant.id)}
+              >
+                <span>{variant.label}</span>
+                <strong>{variant.title}</strong>
+                <small>{variant.rule}</small>
+              </button>
+            ))}
+          </div>
+        </GuideDrawer>
+
+        <GuideDrawer title="Workout Rounds" icon={<Target size={16} />} tip="Rounds are focused reps. Pick the weak skill instead of noodling.">
+          <div className="workout-rounds compact-list">
+            {workoutRounds.map((round) => {
+              const result = roundResults[`${lesson.id}:${round.id}`];
+              return (
+                <button
+                  className={`workout-round ${round.id === activeRoundId ? "active" : ""}`}
+                  key={round.id}
+                  onClick={() => onWorkoutRound(round)}
+                >
+                  <span>{round.badge}</span>
+                  <strong>{round.title}</strong>
+                  <small>{round.instruction(practiceLesson)}</small>
+                  <em>{result ? `${result.score} / ${result.focus}` : round.win}</em>
+                </button>
+              );
+            })}
+          </div>
+        </GuideDrawer>
+
+        <GuideDrawer title="Why It Works" icon={<BookOpen size={16} />} tip="Open this when you want the musical reason, not during the rep.">
+          <p>{lesson.why}</p>
+          <ol>
+            {lesson.anatomy.map((item) => (
+              <li key={item.label}>
+                <strong>{item.label}</strong>
+                <span>{item.detail}</span>
+              </li>
+            ))}
+          </ol>
+          {!notesRevealed && <p className="note-reveal">Note names reveal after hearing or answering the ear check.</p>}
+        </GuideDrawer>
+
+        <GuideDrawer title="Source And Taste" icon={<ListMusic size={16} />} tip="Shows what this lesson is borrowing and what not to overdo.">
           {lesson.taste && (
             <div className="taste-box">
               <span>{lesson.taste.artist}</span>
@@ -630,93 +746,9 @@ function LessonCoach({
             <span>Extracted</span>
             {lesson.source.material.slice(0, 4).map((item) => <em key={item}>{item}</em>)}
           </div>
-          <p className="adaptation-note">{lesson.source.adaptation}</p>
-        </article>
+        </GuideDrawer>
 
-        <article className="move-card">
-          <div className="panel-heading">
-            <BookOpen size={18} />
-            <h2>{lesson.move}</h2>
-          </div>
-          <p>{lesson.why}</p>
-          <div className="execution-strip">
-            <span>Execution target</span>
-            <em>{lesson.groove.swing} pocket</em>
-            {lesson.taste?.touch && <em>{lesson.taste.touch}</em>}
-          </div>
-          <div className="coach-actions">
-            <button className="primary-button" onClick={onDemo}>
-              <Headphones size={16} />
-              {demoPlaying ? "Playing" : "Hear teacher"}
-            </button>
-            <button className="secondary-button" onClick={onCopy} disabled={!canPractice}>
-              <Play size={16} />
-              Copy it
-            </button>
-            <button className="secondary-button" onClick={onVary} disabled={!canPractice}>
-              <Sparkles size={16} />
-              Vary it
-            </button>
-          </div>
-        </article>
-
-        <article className="forms-card">
-          <h3>Lick forms</h3>
-          <div className="form-options">
-            {phraseVariants.map((variant) => (
-              <button
-                className={`form-option ${variant.id === selectedVariantId ? "active" : ""}`}
-                key={variant.id}
-                onClick={() => onVariant(variant.id)}
-              >
-                <span>{variant.label}</span>
-                <strong>{variant.title}</strong>
-                <small>{variant.rule}</small>
-              </button>
-            ))}
-          </div>
-        </article>
-
-        <article className="ear-card">
-          <h3>Ear check</h3>
-          <p>{heardDemo ? lesson.earCheck.question : "Hear the source phrase before the app shows the note names."}</p>
-          <div className="ear-options">
-            {lesson.earCheck.options.map((option, index) => (
-              <button
-                className={`ear-option ${earAnswer === index ? "selected" : ""} ${earAnswer === index && earCorrect ? "correct" : ""}`}
-                disabled={!heardDemo}
-                key={option}
-                onClick={() => onEarAnswer(index)}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-          {selectedEar && <small>{earCorrect ? lesson.earCheck.success : lesson.earCheck.miss}</small>}
-        </article>
-
-        <article className="listen-card">
-          <h3>Phrase anatomy</h3>
-          <ol>
-            {lesson.anatomy.map((item) => (
-              <li key={item.label}>
-                <strong>{item.label}</strong>
-                <span>{item.detail}</span>
-              </li>
-            ))}
-          </ol>
-          {!notesRevealed && <p className="note-reveal">Note names reveal after hearing or answering the ear check.</p>}
-        </article>
-
-        <article className="steps-card">
-          <h3>Practice script</h3>
-          <ol>
-            {lesson.steps.map((item) => <li key={item}>{item}</li>)}
-          </ol>
-        </article>
-
-        <article className="remix-card">
-          <h3>Twist cards</h3>
+        <GuideDrawer title="Twist Prompts" icon={<Sparkles size={16} />} tip="Use these after Copy. They keep variation constrained.">
           <div className="remix-options">
             {lesson.remixPrompts.map((prompt) => (
               <button className="remix-option" disabled={!canPractice} key={prompt} onClick={() => onVaryPrompt(prompt)}>
@@ -724,30 +756,34 @@ function LessonCoach({
               </button>
             ))}
           </div>
-        </article>
-
-        <article className="workout-card">
-          <h3>Taste workout</h3>
-          <div className="workout-rounds">
-            {workoutRounds.map((round) => {
-              const result = roundResults[`${lesson.id}:${round.id}`];
-              return (
-                <button
-                  className={`workout-round ${round.id === activeRoundId ? "active" : ""}`}
-                  key={round.id}
-                  onClick={() => onWorkoutRound(round)}
-                >
-                  <span>{round.badge}</span>
-                  <strong>{round.title}</strong>
-                  <small>{round.instruction(practiceLesson)}</small>
-                  <em>{result ? `${result.score} / ${result.focus}` : round.win}</em>
-                </button>
-              );
-            })}
-          </div>
-        </article>
+        </GuideDrawer>
       </div>
     </section>
+  );
+}
+
+function Tooltip({ label, tip, children }) {
+  return (
+    <span className="tooltip-wrap">
+      <span className="tooltip-label">{label}</span>
+      <strong>{children}</strong>
+      <span className="tooltip-dot" tabIndex={0} aria-label={tip}>?</span>
+      <span className="tooltip-bubble">{tip}</span>
+    </span>
+  );
+}
+
+function GuideDrawer({ title, icon, tip, children }) {
+  return (
+    <details className="guide-drawer">
+      <summary>
+        <span>{icon}{title}</span>
+        <Tooltip label="Guide" tip={tip}>
+          <ChevronDown size={14} />
+        </Tooltip>
+      </summary>
+      <div className="guide-drawer-body">{children}</div>
+    </details>
   );
 }
 
