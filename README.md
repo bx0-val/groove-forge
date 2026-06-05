@@ -6,6 +6,8 @@ The current build adds a taste curriculum: original playable studies inspired by
 
 The latest loop adds lesson-specific grooves: each mission has a drum pocket, bass movement, and soft piano comping bed. Demos, copy runs, variation runs, microdrills, and A/B comparison now happen over the same pocket, so execution means playing the lick in the groove rather than just passing a note quiz.
 
+It now has a taste workout deck. Each lesson can be practiced as multiple lick forms: full teacher phrase, pocket skeleton, answer tag, delayed entrance, and touch ghost. The workout rounds force the player through Shadow, Pocket Lock, Touch Pass, Answer Tag, and Taste Twist so the same idea becomes vocabulary instead of a one-off exercise.
+
 ## What It Teaches
 
 - BopLand-style ii-V-I vocabulary and short reshufflable lick fragments
@@ -18,6 +20,8 @@ The latest loop adds lesson-specific grooves: each mission has a drum pocket, ba
 - Groove-backed practice with kick/snare/hat patterns, bass lines, and comp chords per lesson
 - Pocket scoring that checks whether the lick sits near the teacher rhythm
 - Twist cards that turn each learned lick into concrete variation challenges
+- Lick forms for skeleton, answer, late-entry, and touch-focused practice
+- Workout rounds that track focused execution passes per lesson
 - A/B teacher-vs-player comparison
 - One-correction microdrills
 - A gated mission path that unlocks the next idea only after a real copy pass

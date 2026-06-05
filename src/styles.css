@@ -179,10 +179,12 @@ button {
 .coach-board,
 .source-card,
 .move-card,
+.forms-card,
 .ear-card,
 .listen-card,
 .steps-card,
 .remix-card,
+.workout-card,
 .reflection-card {
   border: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
@@ -360,10 +362,12 @@ button {
 
 .source-card,
 .move-card,
+.forms-card,
 .ear-card,
 .listen-card,
 .steps-card,
 .remix-card,
+.workout-card,
 .reflection-card {
   padding: 14px;
   box-shadow: none;
@@ -371,10 +375,12 @@ button {
 
 .move-card h2,
 .source-card h3,
+.forms-card h3,
 .ear-card h3,
 .listen-card h3,
 .steps-card h3,
 .remix-card h3,
+.workout-card h3,
 .reflection-card h3 {
   margin: 0;
 }
@@ -515,6 +521,69 @@ button {
   display: grid;
   align-content: start;
   gap: 10px;
+}
+
+.forms-card,
+.workout-card {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.form-options,
+.workout-rounds {
+  display: grid;
+  gap: 8px;
+}
+
+.form-option,
+.workout-round {
+  min-height: 54px;
+  border: 1px solid rgba(247, 241, 232, 0.12);
+  border-radius: 8px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.035);
+  text-align: left;
+  padding: 9px 10px;
+  cursor: pointer;
+  display: grid;
+  gap: 3px;
+}
+
+.form-option:hover,
+.workout-round:hover {
+  border-color: rgba(48, 214, 189, 0.45);
+}
+
+.form-option.active,
+.workout-round.active {
+  border-color: rgba(242, 174, 69, 0.68);
+  background: rgba(242, 174, 69, 0.09);
+}
+
+.form-option span,
+.workout-round span {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 2px 7px;
+  color: #0d1212;
+  background: var(--teal);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.form-option small,
+.workout-round small,
+.workout-round em {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+  font-style: normal;
+}
+
+.workout-round em {
+  color: var(--amber);
 }
 
 .remix-options {

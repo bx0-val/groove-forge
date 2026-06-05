@@ -42,6 +42,8 @@ The next strategic layer is taste literacy. Groove Forge should give the learner
 
 The current execution layer adds lesson-specific grooves: drum patterns, bass movement, and soft comping that run under teacher demos, practice runs, drills, and A/B comparison. This shifts evaluation from legal notes to taste under pressure: can the player put the lick in the pocket, keep the touch target, and vary one detail without destroying the feel?
 
+The workout layer turns each lick into repeatable vocabulary. A lesson now exposes the full teacher phrase, pocket skeleton, answer tag, late entrance, and touch ghost, then runs the learner through Shadow, Pocket Lock, Touch Pass, Answer Tag, and Taste Twist. This is the core "honing machine" model: one beautiful idea, several executable forms, focused passes, and a score tied to the pass objective.
+
 Every session should run this loop:
 
 1. Start a beautiful loop.
@@ -177,6 +179,18 @@ Build lessons around artist-flow profiles:
 - Uyama Hiroto: modal room, airy leap, calm color-tone descent.
 
 These profiles should stay visible in the lesson UI as mindset, bite traits, practice target, touch target, and guardrail. They are original educational exercises, not copied songs.
+
+### Track 8: Taste Workouts
+
+Convert each phrase into playable forms:
+
+- Full phrase for imitation.
+- Skeleton for pocket.
+- Answer tag for memory.
+- Late entrance for restraint.
+- Touch ghost for dynamics.
+
+Then run focused rounds over those forms so the learner repeats one taste idea until it becomes usable vocabulary.
 
 ## Non-Goals
 

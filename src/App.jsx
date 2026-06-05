@@ -22,6 +22,7 @@ import {
   Volume2,
   Waves
 } from "lucide-react";
+import { workoutRounds } from "./data/workoutRounds";
 import {
   ensureAudioContext,
   playBassNote,
@@ -32,6 +33,7 @@ import {
 } from "./lib/audioEngine";
 import { lessonSteps, lessons } from "./lib/challenges";
 import { createNoteEvent, midiToNote, pitchInSet } from "./lib/music";
+import { applyPhraseVariant, buildPhraseVariants } from "./lib/phraseVariants";
 import { phraseToMidiNotes, scoreTake } from "./lib/scoring";
 import { useMidi } from "./hooks/useMidi";
 
@@ -110,22 +112,28 @@ export default function App() {
   const [coachNote, setCoachNote] = useState("Start by hearing the model phrase. Your job is to copy before you decorate.");
   const [heardLessons, setHeardLessons] = useState({});
   const [earAnswers, setEarAnswers] = useState({});
+  const [selectedVariantId, setSelectedVariantId] = useState("teacher");
+  const [activeRoundId, setActiveRoundId] = useState(null);
+  const [roundResults, setRoundResults] = useState({});
   const audioRef = useRef(null);
   const timersRef = useRef([]);
   const demoRequestRef = useRef(0);
   const lesson = lessons.find((item) => item.id === selectedLessonId) ?? lessons[0];
-  const beatMs = 60000 / lesson.bpm;
-  const runLength = lesson.bars * 4 * beatMs;
+  const phraseVariants = useMemo(() => buildPhraseVariants(lesson), [lesson]);
+  const selectedVariant = phraseVariants.find((variant) => variant.id === selectedVariantId) ?? phraseVariants[0];
+  const practiceLesson = useMemo(() => applyPhraseVariant(lesson, selectedVariant), [lesson, selectedVariant]);
+  const beatMs = 60000 / practiceLesson.bpm;
+  const runLength = practiceLesson.bars * 4 * beatMs;
   const now = useTicker(isRunning);
   const remaining = isRunning && startedAt ? runLength - (now - startedAt) : runLength;
   const progressRatio = isRunning && startedAt ? Math.min(1, (now - startedAt) / runLength) : 0;
-  const phraseNotes = useMemo(() => phraseToMidiNotes(lesson.demoPhrase), [lesson]);
-  const heardDemo = Boolean(heardLessons[lesson.id]);
+  const phraseNotes = useMemo(() => phraseToMidiNotes(practiceLesson.demoPhrase), [practiceLesson]);
+  const heardDemo = Boolean(heardLessons[`${lesson.id}:${selectedVariant.id}`]);
   const earAnswer = earAnswers[lesson.id] ?? null;
   const notesRevealed = heardDemo || earAnswer !== null || Boolean(lastScore);
   const liveScore = useMemo(
-    () => scoreTake(events, lesson, startedAt ?? performance.now(), runMode),
-    [events, lesson, runMode, startedAt]
+    () => scoreTake(events, practiceLesson, startedAt ?? performance.now(), runMode),
+    [events, practiceLesson, runMode, startedAt]
   );
   const activeScore = lastScore ?? liveScore;
   const displayCorrection =
@@ -192,10 +200,10 @@ export default function App() {
     setDemoPlaying(true);
     await preloadPrimarySamples(ctx);
     if (demoRequest !== demoRequestRef.current) return;
-    setHeardLessons((current) => ({ ...current, [lesson.id]: true }));
-    setCoachNote("Listen for the shape first. Sing it once, then use Copy mode.");
+    setHeardLessons((current) => ({ ...current, [`${lesson.id}:${selectedVariant.id}`]: true }));
+    setCoachNote(`${selectedVariant.title}: ${selectedVariant.rule}`);
 
-    if (pulseOn) scheduleGroove(ctx, lesson.groove, beatMs, lesson.bars * 4, timersRef, { includeComp: true });
+    if (pulseOn) scheduleGroove(ctx, practiceLesson.groove, beatMs, practiceLesson.bars * 4, timersRef, { includeComp: true });
 
     phraseNotes.forEach((note) => {
       const id = window.setTimeout(() => {
@@ -211,10 +219,11 @@ export default function App() {
     timersRef.current.push(done);
   }
 
-  function startRun(mode, instruction = null) {
+  function startRun(mode, instruction = null, lessonOverride = practiceLesson, variantOverride = selectedVariant) {
     clearTimers();
     const ctx = getAudio();
-    if (pulseOn) scheduleGroove(ctx, lesson.groove, beatMs, lesson.bars * 4, timersRef, { includeComp: true });
+    const nextBeatMs = 60000 / lessonOverride.bpm;
+    if (pulseOn) scheduleGroove(ctx, lessonOverride.groove, nextBeatMs, lessonOverride.bars * 4, timersRef, { includeComp: true });
     setRunMode(mode);
     setRunInstruction(instruction);
     setActiveStep(mode === "drill" ? "fix" : mode);
@@ -222,11 +231,20 @@ export default function App() {
     setLastScore(null);
     setStartedAt(performance.now());
     setIsRunning(true);
-    setCoachNote(instruction ?? (mode === "copy" ? lesson.copyGoal : mode === "drill" ? lesson.drillGoal : lesson.varyGoal));
+    setCoachNote(instruction ?? variantOverride.rule ?? (mode === "copy" ? lessonOverride.copyGoal : mode === "drill" ? lessonOverride.drillGoal : lessonOverride.varyGoal));
+  }
+
+  function startWorkoutRound(round) {
+    const nextVariant = phraseVariants.find((variant) => variant.id === round.variantId) ?? phraseVariants[0];
+    const nextLesson = applyPhraseVariant(lesson, nextVariant);
+    setSelectedVariantId(nextVariant.id);
+    setActiveRoundId(round.id);
+    setHeardLessons((current) => ({ ...current, [`${lesson.id}:${nextVariant.id}`]: true }));
+    startRun(round.mode, round.instruction({ ...lesson, activeVariant: nextVariant }), nextLesson, nextVariant);
   }
 
   function finishRun() {
-    const result = scoreTake(events, lesson, startedAt ?? performance.now(), runMode);
+    const result = scoreTake(events, practiceLesson, startedAt ?? performance.now(), runMode);
     clearTimers();
     setIsRunning(false);
     setLastScore(result);
@@ -239,11 +257,20 @@ export default function App() {
         [lesson.id]: {
           best: Math.max(prior.best, result.score),
           runs: prior.runs + 1,
-          copyPasses: prior.copyPasses + (runMode === "copy" && result.echoMatches >= lesson.demoPhrase.length ? 1 : 0),
+          copyPasses: prior.copyPasses + (runMode === "copy" && result.echoMatches >= practiceLesson.demoPhrase.length ? 1 : 0),
           last: result.score
         }
       };
     });
+    if (activeRoundId) {
+      setRoundResults((current) => ({
+        ...current,
+        [`${lesson.id}:${activeRoundId}`]: {
+          score: result.score,
+          focus: result.categories.find((category) => category.id === workoutRounds.find((round) => round.id === activeRoundId)?.focus)?.score ?? result.score
+        }
+      }));
+    }
   }
 
   function resetRun() {
@@ -253,14 +280,27 @@ export default function App() {
     setEvents([]);
     setLastScore(null);
     setRunInstruction(null);
+    setActiveRoundId(null);
     setCoachNote("Start by hearing the model phrase. Your job is to copy before you decorate.");
   }
 
   function chooseLesson(id) {
     resetRun();
     setSelectedLessonId(id);
+    setSelectedVariantId("teacher");
+    setActiveRoundId(null);
     setActiveStep("source");
     setCoachNote("Steal the source idea first, then copy it by ear.");
+  }
+
+  function chooseVariant(id) {
+    clearTimers();
+    setSelectedVariantId(id);
+    setLastScore(null);
+    setEvents([]);
+    setActiveRoundId(null);
+    const variant = phraseVariants.find((item) => item.id === id);
+    setCoachNote(variant ? `${variant.title}: ${variant.rule}` : "Choose a lick form, hear it, then copy it.");
   }
 
   function answerEarCheck(index) {
@@ -278,7 +318,7 @@ export default function App() {
     const ctx = getAudio();
     const phraseEndBeat = Math.max(...phraseNotes.map((note) => note.beat + note.duration), 8);
     const userOffsetMs = (phraseEndBeat + 1.5) * beatMs;
-    if (pulseOn) scheduleGroove(ctx, lesson.groove, beatMs, phraseEndBeat * 2 + 2, timersRef, { includeComp: true });
+    if (pulseOn) scheduleGroove(ctx, practiceLesson.groove, beatMs, phraseEndBeat * 2 + 2, timersRef, { includeComp: true });
 
     phraseNotes.forEach((note) => {
       const id = window.setTimeout(() => {
@@ -311,6 +351,7 @@ export default function App() {
       lessonId: lesson.id,
       lessonTitle: lesson.title,
       sourceName: lesson.source.name,
+      variantTitle: selectedVariant.title,
       mode: runMode,
       score: lastScore.score,
       date: new Date().toLocaleString(),
@@ -405,10 +446,17 @@ export default function App() {
         <LessonCoach
           activeStep={activeStep}
           lesson={lesson}
+          practiceLesson={practiceLesson}
+          phraseVariants={phraseVariants}
+          selectedVariantId={selectedVariant.id}
+          onVariant={chooseVariant}
           onDemo={playDemo}
           onCopy={() => startRun("copy")}
           onVary={() => startRun("vary")}
           onVaryPrompt={(prompt) => startRun("vary", prompt)}
+          onWorkoutRound={startWorkoutRound}
+          activeRoundId={activeRoundId}
+          roundResults={roundResults}
           canPractice={heardDemo}
           onEarAnswer={answerEarCheck}
           heardDemo={heardDemo}
@@ -420,18 +468,18 @@ export default function App() {
         <div className="groove-board">
           <div className="board-header">
             <div>
-              <span>{lesson.key}</span>
-              <strong>{lesson.bpm} BPM</strong>
+              <span>{practiceLesson.key}</span>
+              <strong>{practiceLesson.bpm} BPM</strong>
             </div>
             <div className="clock">{formatClock(remaining)}</div>
             <div>
               <span>{runMode === "copy" ? "Copy target" : runMode === "drill" ? "Drill target" : "Variation target"}</span>
-              <strong>{lesson.targets.join(" / ")}</strong>
+              <strong>{practiceLesson.targets.join(" / ")}</strong>
             </div>
           </div>
 
           <GrooveLane
-            lesson={lesson}
+            lesson={practiceLesson}
             events={events}
             phraseNotes={phraseNotes}
             notesRevealed={notesRevealed}
@@ -441,14 +489,14 @@ export default function App() {
           />
 
           <div className="constraint-strip">
-            <Constraint icon={<Waves size={16} />} label="Groove" value={`${lesson.groove.name} - ${lesson.groove.feel}`} />
-            <Constraint icon={<Target size={16} />} label="Allowed notes" value={lesson.palette.join(" ")} />
-            <Constraint icon={<ListMusic size={16} />} label="Model phrase" value={notesRevealed ? lesson.demoPhrase.map((note) => note.note.replace(/\d$/, "")).join(" - ") : "Listen first - no labels yet"} />
-            <Constraint icon={<Gauge size={16} />} label="Rule" value={runInstruction ?? (runMode === "copy" ? lesson.copyGoal : runMode === "drill" ? lesson.drillGoal : lesson.varyGoal)} />
+            <Constraint icon={<Waves size={16} />} label="Groove" value={`${practiceLesson.groove.name} - ${practiceLesson.groove.feel}`} />
+            <Constraint icon={<Target size={16} />} label="Allowed notes" value={practiceLesson.palette.join(" ")} />
+            <Constraint icon={<ListMusic size={16} />} label="Model phrase" value={notesRevealed ? practiceLesson.demoPhrase.map((note) => note.note.replace(/\d$/, "")).join(" - ") : "Listen first - no labels yet"} />
+            <Constraint icon={<Gauge size={16} />} label="Rule" value={runInstruction ?? selectedVariant.rule ?? (runMode === "copy" ? practiceLesson.copyGoal : runMode === "drill" ? practiceLesson.drillGoal : practiceLesson.varyGoal)} />
           </div>
         </div>
 
-        <VirtualKeyboard lesson={lesson} onNote={(midiNote) => handleNote(createNoteEvent(midiNote, 98, "screen"))} />
+        <VirtualKeyboard lesson={practiceLesson} onNote={(midiNote) => handleNote(createNoteEvent(midiNote, 98, "screen"))} />
       </section>
 
       <aside className="feedback-panel">
@@ -502,10 +550,17 @@ export default function App() {
 function LessonCoach({
   activeStep,
   lesson,
+  practiceLesson,
+  phraseVariants,
+  selectedVariantId,
+  onVariant,
   onDemo,
   onCopy,
   onVary,
   onVaryPrompt,
+  onWorkoutRound,
+  activeRoundId,
+  roundResults,
   canPractice,
   onEarAnswer,
   heardDemo,
@@ -585,6 +640,23 @@ function LessonCoach({
           </div>
         </article>
 
+        <article className="forms-card">
+          <h3>Lick forms</h3>
+          <div className="form-options">
+            {phraseVariants.map((variant) => (
+              <button
+                className={`form-option ${variant.id === selectedVariantId ? "active" : ""}`}
+                key={variant.id}
+                onClick={() => onVariant(variant.id)}
+              >
+                <span>{variant.label}</span>
+                <strong>{variant.title}</strong>
+                <small>{variant.rule}</small>
+              </button>
+            ))}
+          </div>
+        </article>
+
         <article className="ear-card">
           <h3>Ear check</h3>
           <p>{heardDemo ? lesson.earCheck.question : "Hear the source phrase before the app shows the note names."}</p>
@@ -631,6 +703,27 @@ function LessonCoach({
                 {prompt}
               </button>
             ))}
+          </div>
+        </article>
+
+        <article className="workout-card">
+          <h3>Taste workout</h3>
+          <div className="workout-rounds">
+            {workoutRounds.map((round) => {
+              const result = roundResults[`${lesson.id}:${round.id}`];
+              return (
+                <button
+                  className={`workout-round ${round.id === activeRoundId ? "active" : ""}`}
+                  key={round.id}
+                  onClick={() => onWorkoutRound(round)}
+                >
+                  <span>{round.badge}</span>
+                  <strong>{round.title}</strong>
+                  <small>{round.instruction(practiceLesson)}</small>
+                  <em>{result ? `${result.score} / ${result.focus}` : round.win}</em>
+                </button>
+              );
+            })}
           </div>
         </article>
       </div>

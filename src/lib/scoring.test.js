@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { lessons } from "./challenges";
 import { scoreTake } from "./scoring";
 import { noteToMidi, pitchClass } from "./music";
+import { buildPhraseVariants, applyPhraseVariant } from "./phraseVariants";
+import { workoutRounds } from "../data/workoutRounds";
 import { tasteProfiles } from "../data/tasteProfiles";
 
 const lesson = lessons[0];
@@ -41,6 +43,13 @@ describe("scoreTake", () => {
       expect(item.groove.bass.length).toBeGreaterThan(0);
       expect(item.groove.comp.length).toBeGreaterThan(0);
       expect(item.remixPrompts.length).toBeGreaterThanOrEqual(3);
+      const variants = buildPhraseVariants(item);
+      expect(variants.length).toBeGreaterThanOrEqual(5);
+      expect(variants.map((variant) => variant.id)).toEqual(["teacher", "skeleton", "answer", "late", "touch"]);
+      variants.forEach((variant) => {
+        expect(variant.phrase.length).toBeGreaterThan(0);
+        expect(variant.rule).toBeTruthy();
+      });
       expect(item.taste).toMatchObject({
         artist: expect.any(String),
         lens: expect.any(String),
@@ -50,6 +59,32 @@ describe("scoreTake", () => {
       });
       expect(item.taste.bite.length).toBeGreaterThanOrEqual(3);
     });
+  });
+
+  it("keeps workout rounds mapped to playable phrase variants", () => {
+    const variants = buildPhraseVariants(lesson);
+    workoutRounds.forEach((round) => {
+      const variant = variants.find((item) => item.id === round.variantId);
+      expect(variant).toBeTruthy();
+      expect(round.instruction(lesson)).toBeTruthy();
+      expect(["copy", "vary", "drill"]).toContain(round.mode);
+      expect(["echo", "pocket", "dynamics", "target", "motif"]).toContain(round.focus);
+    });
+  });
+
+  it("scores a selected phrase form against that form, not the original full lick", () => {
+    const variant = buildPhraseVariants(lesson).find((item) => item.id === "skeleton");
+    const variantLesson = applyPhraseVariant(lesson, variant);
+    const beatMs = 60000 / variantLesson.bpm;
+    const result = scoreTake(
+      variantLesson.demoPhrase.map((note) => phraseEvent(note.note, 1000 + note.beat * beatMs, note.velocity)),
+      variantLesson,
+      1000,
+      "copy"
+    );
+
+    expect(result.echoMatches).toBe(variantLesson.demoPhrase.length);
+    expect(result.categories.find((category) => category.id === "echo").score).toBeGreaterThan(90);
   });
 
   it("keeps artist-flow studies broad, explicit, and non-quote based", () => {
