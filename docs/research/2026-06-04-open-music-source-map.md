@@ -8,7 +8,7 @@ status: draft
 
 ## Correction
 
-The next version of Groove Forge should not generate all musical/audio material from scratch.
+Groove Forge should not generate all musical/audio material from scratch.
 
 The app should assemble existing legal/open building blocks:
 
@@ -52,6 +52,18 @@ Current implementation:
 Source: https://github.com/tonaljs/tonal
 
 Source: https://github.com/danigb/smplr
+
+### `@tonejs/midi`
+
+Use: parse MIDI source files into app-friendly phrase fragments.
+
+Current implementation:
+
+- `scripts/extract-jazznet-fragment.mjs` parses a MIDI file and emits beat/duration/velocity phrase JSON.
+- The first inspected source file is `midi/progressions/I-VI-ii-V-maj/A-1-I-VI-ii-V-maj-0.mid` from jazznet.
+- The app stores the extracted chord-stack material plus the beginner adaptation in `src/data/sourceFragments.js`.
+
+Source: https://github.com/Tonejs/Midi
 
 ## Audio/Synthesis Candidates
 
@@ -191,10 +203,10 @@ Source: https://openmusictheory.github.io/
 
 - MIT libraries: safe to use with attribution in docs/package metadata.
 - CC BY material: can adapt and redistribute with attribution.
-- CC BY-SA material: adaptations should preserve share-alike terms for the adapted content.
-- CC BY-NC material: use only for private research/non-commercial prototypes unless permission is obtained.
-- GPL material: importing GPL code/content may force GPL obligations on the combined work; study concepts freely, integrate carefully.
-- Copyrighted standards/Real Book/recordings: do not hardcode melodies or copied solos into the app without permission.
+- CC BY-SA material: acceptable for this project; keep attribution and source notes visible.
+- CC BY-NC material: acceptable for this project because it is explicitly non-commercial.
+- GPL material: acceptable for this project when useful; keep provenance visible.
+- Copyrighted standards/Real Book/recordings: avoid hardcoding melodies or commercial recordings directly.
 
 ## Next Build Plan
 

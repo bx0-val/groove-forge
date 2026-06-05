@@ -36,7 +36,7 @@ Move from "guided lesson dashboard" to "one groove mission."
 
 Also move from "generated-from-scratch music toy" to "source-first practice system." The app should copy from legal/open music resources wherever possible: sampled instruments, MIDI pattern datasets, lick databases, jazz grammar projects, and open theory texts. Original work should happen in the adaptation layer: choosing the right fragment, simplifying it for the learner, transposing it, making it playable, and turning it into a feedback loop.
 
-The current v3 implementation now includes a source-aware mission catalog, visible attribution/license/adaptation notes, ear checks before model-note reveal, A/B comparison controls, and one-correction microdrills.
+The current v3 implementation now includes a source-aware mission catalog, visible attribution/license/adaptation notes, extracted source material, ear checks before model-note reveal, A/B comparison controls, one-correction microdrills, and mission gating.
 
 Every session should run this loop:
 
@@ -152,6 +152,8 @@ Build a small source-ingestion layer:
 - Open Music Theory for CC BY-SA explanations and vocabulary.
 
 Each imported/adapted idea should store its source, license, original context, simplification, transposition, and learning behavior.
+
+Because this is explicitly non-commercial, GPL, CC BY-NC, research, and freely available software/datasets are acceptable sources. The constraint is not commercial licensing risk; it is keeping the source trail honest and avoiding direct embedding of copyrighted commercial recordings or fake-book melodies.
 
 ## Non-Goals
 

@@ -1,3 +1,20 @@
+import { sourceFragments } from "../data/sourceFragments";
+
+function sourceFrom(fragment) {
+  return {
+    fragmentId: fragment.id,
+    name: fragment.sourceName,
+    url: fragment.sourceUrl,
+    license: fragment.license,
+    kind: fragment.sourceKind,
+    idea: fragment.sourceIdea,
+    material: fragment.extractedMaterial,
+    adaptation: fragment.beginnerAdaptation,
+    sourceFile: fragment.sourceFile,
+    sourceTool: fragment.sourceTool
+  };
+}
+
 export const lessonSteps = [
   { id: "source", label: "Source", verb: "Know what you are stealing" },
   { id: "demo", label: "Hear", verb: "Listen before labels" },
@@ -15,6 +32,7 @@ export const lessons = [
     subtitle: "Steal the outline, not random notes",
     world: "Ryo / bebop entry",
     level: "V3.0 Mission 1",
+    unlock: { type: "open", label: "Start here" },
     skill: "Resolution vocabulary",
     bpm: 82,
     key: "C major over Dm7-G7-Cmaj",
@@ -23,10 +41,7 @@ export const lessons = [
     targets: ["B", "E", "C"],
     bars: 4,
     source: {
-      name: "BopLand treble-clef Major 2-5-1 lick collection",
-      url: "https://bopland.org/database#treble-clef-licks/Major+2+5+1",
-      license: "CC BY-SA 4.0",
-      adaptation: "Beginner piano adaptation of the BopLand ii-V-I vocabulary category: chord outline first, stepwise resolution second."
+      ...sourceFrom(sourceFragments.boplandMajor251Outline)
     },
     progression: ["Dm7", "G7", "Cmaj7"],
     move: "Outline Dm7, then let G7 fall into C",
@@ -54,16 +69,7 @@ export const lessons = [
       "Copy the exact contour: D, F, A, C, then B, G, E, C.",
       "For the twist, keep D-F-A-C and change only the final landing."
     ],
-    demoPhrase: [
-      { note: "D4", beat: 0, duration: 0.55, velocity: 78 },
-      { note: "F4", beat: 0.75, duration: 0.55, velocity: 86 },
-      { note: "A4", beat: 1.5, duration: 0.55, velocity: 92 },
-      { note: "C5", beat: 2.25, duration: 0.8, velocity: 96 },
-      { note: "B4", beat: 4, duration: 0.55, velocity: 90 },
-      { note: "G4", beat: 5, duration: 0.55, velocity: 82 },
-      { note: "E4", beat: 6, duration: 0.55, velocity: 78 },
-      { note: "C4", beat: 7.25, duration: 1.05, velocity: 74 }
-    ],
+    demoPhrase: sourceFragments.boplandMajor251Outline.demoPhrase,
     copyGoal: "Copy the source line before decorating it.",
     varyGoal: "Keep the D-F-A-C opening and change only the last two notes.",
     drillGoal: "Play only B-G-E-C until the resolution feels inevitable.",
@@ -77,6 +83,7 @@ export const lessons = [
     subtitle: "Make harmony audible with two-note gravity",
     world: "Bill Evans color",
     level: "V3.0 Mission 2",
+    unlock: { type: "previous", lessonId: "bopland-ii-v-i", minScore: 75, label: "Pass ii-V-I Doorway" },
     skill: "Guide-tone hearing",
     bpm: 74,
     key: "F major over Gm7-C7-Fmaj",
@@ -85,10 +92,7 @@ export const lessons = [
     targets: ["Bb", "E", "A"],
     bars: 4,
     source: {
-      name: "Open Music Theory jazz voicings / guide-tone voice leading",
-      url: "https://viva.pressbooks.pub/openmusictheory/chapter/jazz-voicings/",
-      license: "CC BY-SA 4.0",
-      adaptation: "Turns the guide-tone voice-leading concept into a right-hand melodic thread for beginner copy-and-answer practice."
+      ...sourceFrom(sourceFragments.openTheoryGuideTones)
     },
     progression: ["Gm7", "C7", "Fmaj7"],
     move: "Let the 3rd and 7th pull the line",
@@ -116,15 +120,7 @@ export const lessons = [
       "Copy the phrase and make each target a little stronger.",
       "Vary by changing the passing notes, not the guide-tone landings."
     ],
-    demoPhrase: [
-      { note: "Bb3", beat: 0, duration: 0.85, velocity: 84 },
-      { note: "D4", beat: 1, duration: 0.5, velocity: 74 },
-      { note: "F4", beat: 2, duration: 0.5, velocity: 78 },
-      { note: "E4", beat: 3, duration: 0.95, velocity: 92 },
-      { note: "G4", beat: 4.5, duration: 0.45, velocity: 76 },
-      { note: "A4", beat: 5.5, duration: 1.1, velocity: 90 },
-      { note: "F4", beat: 7, duration: 0.9, velocity: 72 }
-    ],
+    demoPhrase: sourceFragments.openTheoryGuideTones.demoPhrase,
     copyGoal: "Land Bb, E, and A with intention.",
     varyGoal: "Keep the target notes and change only the connector notes.",
     drillGoal: "Play Bb, then E, then A on strong beats. Nothing else.",
@@ -138,6 +134,7 @@ export const lessons = [
     subtitle: "A phrase needs lungs",
     world: "Chet Baker restraint",
     level: "V3.0 Mission 3",
+    unlock: { type: "previous", lessonId: "guide-tone-thread", minScore: 75, label: "Pass Guide-Tone Thread" },
     skill: "Space and response",
     bpm: 68,
     key: "C major / A minor",
@@ -146,10 +143,7 @@ export const lessons = [
     targets: ["E", "G", "C"],
     bars: 4,
     source: {
-      name: "Foundations of Aural Skills call-and-response practice",
-      url: "https://uen.pressbooks.pub/auralskills/chapter/call-and-response/",
-      license: "CC BY",
-      adaptation: "Uses the call-response requirement to make the player answer a short phrase with equal length and clear intention."
+      ...sourceFrom(sourceFragments.auralSkillsCallResponse)
     },
     progression: ["C6", "Am7"],
     move: "Sing, breathe, answer",
@@ -177,14 +171,7 @@ export const lessons = [
       "Do not fill the gap.",
       "Answer with fewer notes than you want to play."
     ],
-    demoPhrase: [
-      { note: "G4", beat: 0, duration: 0.55, velocity: 72 },
-      { note: "A4", beat: 1.25, duration: 0.55, velocity: 82 },
-      { note: "C5", beat: 2.5, duration: 1.1, velocity: 90 },
-      { note: "E4", beat: 5.25, duration: 0.55, velocity: 74 },
-      { note: "D4", beat: 6.25, duration: 0.55, velocity: 70 },
-      { note: "C4", beat: 7.25, duration: 1.05, velocity: 68 }
-    ],
+    demoPhrase: sourceFragments.auralSkillsCallResponse.demoPhrase,
     copyGoal: "Copy the silence as precisely as the notes.",
     varyGoal: "Keep the breath and change only the answer ending.",
     drillGoal: "Play G-A-C, wait two beats, then answer with C only.",
@@ -198,6 +185,7 @@ export const lessons = [
     subtitle: "Make the color note feel chosen",
     world: "Bill Evans / lofi color",
     level: "V3.0 Mission 4",
+    unlock: { type: "previous", lessonId: "chet-breath", minScore: 75, label: "Pass Breath Before Notes" },
     skill: "Color-tone landing",
     bpm: 70,
     key: "A minor 9",
@@ -206,10 +194,7 @@ export const lessons = [
     targets: ["B", "G"],
     bars: 4,
     source: {
-      name: "Open Music Theory jazz extensions and voicing concepts",
-      url: "https://viva.pressbooks.pub/openmusictheory/chapter/jazz-voicings/",
-      license: "CC BY-SA 4.0",
-      adaptation: "Turns the minor 9 color into a melodic target-note mission instead of a chord-symbol explanation."
+      ...sourceFrom(sourceFragments.openTheoryMinor9)
     },
     progression: ["Am9"],
     move: "Aim at the 9th, then stop",
@@ -237,13 +222,7 @@ export const lessons = [
       "Copy the phrase and hold B long enough to hear the color.",
       "Vary by delaying B, not by adding more notes."
     ],
-    demoPhrase: [
-      { note: "A3", beat: 0, duration: 0.8, velocity: 76 },
-      { note: "C4", beat: 1, duration: 0.65, velocity: 82 },
-      { note: "E4", beat: 2, duration: 0.65, velocity: 88 },
-      { note: "G4", beat: 3.5, duration: 0.8, velocity: 78 },
-      { note: "B4", beat: 5, duration: 1.4, velocity: 94 }
-    ],
+    demoPhrase: sourceFragments.openTheoryMinor9.demoPhrase,
     copyGoal: "Make B sound like a chosen color, not a wrong note.",
     varyGoal: "Approach B later or softer, then stop.",
     drillGoal: "Play A-C-E, then land on B and hold it.",
@@ -257,6 +236,7 @@ export const lessons = [
     subtitle: "Stay long enough to hear the mode",
     world: "Yusuf Lateef restraint",
     level: "V3.0 Mission 5",
+    unlock: { type: "previous", lessonId: "evans-minor-9", minScore: 75, label: "Pass Minor 9 Glow" },
     skill: "Modal repetition",
     bpm: 64,
     key: "D dorian",
@@ -265,10 +245,7 @@ export const lessons = [
     targets: ["D", "F", "A"],
     bars: 4,
     source: {
-      name: "Open Music Theory jazz/chord-scale modal practice",
-      url: "https://viva.pressbooks.pub/openmusictheorycopy/part/jazz/",
-      license: "CC BY-SA 4.0",
-      adaptation: "Simplifies modal improvisation into a repeated three-note cell over a drone-like root."
+      ...sourceFrom(sourceFragments.openTheoryModalCell)
     },
     progression: ["D dorian drone"],
     move: "Repeat the cell until the room appears",
@@ -296,14 +273,7 @@ export const lessons = [
       "Repeat the cell softer the second time.",
       "Vary by changing touch, not speed."
     ],
-    demoPhrase: [
-      { note: "D4", beat: 0, duration: 0.75, velocity: 78 },
-      { note: "F4", beat: 1.5, duration: 0.75, velocity: 88 },
-      { note: "A4", beat: 3, duration: 1, velocity: 84 },
-      { note: "D4", beat: 5, duration: 0.65, velocity: 70 },
-      { note: "F4", beat: 6, duration: 0.65, velocity: 76 },
-      { note: "D4", beat: 7, duration: 1.1, velocity: 72 }
-    ],
+    demoPhrase: sourceFragments.openTheoryModalCell.demoPhrase,
     copyGoal: "Copy the cell and keep the mode intact.",
     varyGoal: "Repeat the cell with one touch change.",
     drillGoal: "Play D-F-A twice; second time softer.",
@@ -317,6 +287,7 @@ export const lessons = [
     subtitle: "Make I-vi-ii-V feel like a loop",
     world: "Nujabes / Ryo loop room",
     level: "V3.0 Mission 6",
+    unlock: { type: "previous", lessonId: "lateef-modal-cell", minScore: 75, label: "Pass Modal Cell Room" },
     skill: "Progression memory",
     bpm: 88,
     key: "G major I-vi-ii-V",
@@ -325,10 +296,7 @@ export const lessons = [
     targets: ["B", "E", "A", "F#"],
     bars: 4,
     source: {
-      name: "jazznet CC BY piano-pattern MIDI progression categories",
-      url: "https://zenodo.org/records/7192653",
-      license: "CC BY 4.0",
-      adaptation: "Uses the jazznet I-vi-ii-V progression family as a beginner loop mission with a playable right-hand contour."
+      ...sourceFrom(sourceFragments.jazznetTurnaroundA1)
     },
     progression: ["Gmaj7", "Em7", "Am7", "D7"],
     move: "Make the turnaround cycle without overplaying",
@@ -356,16 +324,7 @@ export const lessons = [
       "Add only the connector notes from the model.",
       "Vary by delaying one target, not by adding a run."
     ],
-    demoPhrase: [
-      { note: "B3", beat: 0, duration: 0.55, velocity: 76 },
-      { note: "D4", beat: 0.75, duration: 0.4, velocity: 70 },
-      { note: "E4", beat: 2, duration: 0.75, velocity: 84 },
-      { note: "G4", beat: 2.75, duration: 0.45, velocity: 74 },
-      { note: "A4", beat: 4, duration: 0.75, velocity: 88 },
-      { note: "C5", beat: 4.75, duration: 0.45, velocity: 76 },
-      { note: "F#4", beat: 6, duration: 1.1, velocity: 90 },
-      { note: "D4", beat: 7.25, duration: 0.65, velocity: 70 }
-    ],
+    demoPhrase: sourceFragments.jazznetTurnaroundA1.demoPhrase,
     copyGoal: "Copy the loop targets before adding connector notes.",
     varyGoal: "Keep B, E, A, and F# but change one entrance.",
     drillGoal: "Play B, E, A, F# on beats 1, 3, 5, and 7.",

@@ -26,6 +26,9 @@ describe("scoreTake", () => {
       expect(item.earCheck.options.length).toBeGreaterThanOrEqual(3);
       expect(item.anatomy.length).toBeGreaterThan(0);
       expect(item.drillGoal).toBeTruthy();
+      expect(item.source.fragmentId).toBeTruthy();
+      expect(item.source.material.length).toBeGreaterThan(0);
+      expect(item.unlock).toBeTruthy();
     });
   });
 

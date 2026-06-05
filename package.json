@@ -6,6 +6,7 @@
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
+    "@tonejs/midi": "^2.0.28",
     "@vitejs/plugin-react": "latest",
     "lucide-react": "latest",
     "react": "latest",

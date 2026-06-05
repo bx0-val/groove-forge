@@ -54,6 +54,12 @@ function useTicker(active) {
   return now;
 }
 
+function missionUnlocked(lesson, progress) {
+  if (!lesson.unlock || lesson.unlock.type === "open") return true;
+  const prior = progress[lesson.unlock.lessonId];
+  return Boolean(prior && prior.best >= lesson.unlock.minScore && prior.copyPasses > 0);
+}
+
 export default function App() {
   const saved = useMemo(loadState, []);
   const [selectedLessonId, setSelectedLessonId] = useState(lessons[0].id);
@@ -316,14 +322,21 @@ export default function App() {
           {lessons.map((item) => {
             const lessonProgress = progress[item.id];
             const active = item.id === lesson.id;
+            const unlocked = missionUnlocked(item, progress);
             return (
-              <button className={`lesson-card ${active ? "active" : ""}`} key={item.id} onClick={() => chooseLesson(item.id)}>
+              <button
+                className={`lesson-card ${active ? "active" : ""} ${unlocked ? "" : "locked"}`}
+                disabled={!unlocked}
+                key={item.id}
+                onClick={() => chooseLesson(item.id)}
+                title={unlocked ? item.level : item.unlock.label}
+              >
                 <span className="lesson-icon">{active ? <Disc3 size={18} /> : <Circle size={12} />}</span>
                 <span>
                   <strong>{item.title}</strong>
-                  <small>{item.world}</small>
+                  <small>{unlocked ? item.world : item.unlock.label}</small>
                 </span>
-                <em>{lessonProgress?.best ? lessonProgress.best : "--"}</em>
+                <em>{unlocked ? lessonProgress?.best ? lessonProgress.best : "--" : "lock"}</em>
               </button>
             );
           })}
@@ -488,8 +501,15 @@ function LessonCoach({ activeStep, lesson, onDemo, onCopy, onVary, canPractice, 
           <div className="source-box">
             <strong>{lesson.source.name}</strong>
             <span>{lesson.source.license}</span>
-            <small>{lesson.source.adaptation}</small>
+            <small>{lesson.source.idea}</small>
+            {lesson.source.sourceFile && <small>File: {lesson.source.sourceFile}</small>}
+            {lesson.source.sourceTool && <small>Tool: {lesson.source.sourceTool}</small>}
           </div>
+          <div className="source-material">
+            <span>Extracted</span>
+            {lesson.source.material.slice(0, 4).map((item) => <em key={item}>{item}</em>)}
+          </div>
+          <p className="adaptation-note">{lesson.source.adaptation}</p>
         </article>
 
         <article className="move-card">

@@ -125,6 +125,20 @@ button {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.lesson-card:disabled {
+  cursor: not-allowed;
+}
+
+.lesson-card.locked {
+  opacity: 0.62;
+}
+
+.lesson-card.locked em {
+  color: var(--soft);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
 .lesson-card.active {
   background: linear-gradient(135deg, rgba(48, 214, 189, 0.16), rgba(242, 174, 69, 0.08));
   border-color: rgba(48, 214, 189, 0.4);
@@ -192,6 +206,7 @@ button {
 .correction-card small,
 .source-card p,
 .source-card small,
+.source-card em,
 .ear-card p,
 .ear-card small,
 .feedback-row p,
@@ -390,6 +405,32 @@ button {
   color: var(--amber);
   font-size: 12px;
   font-weight: 800;
+}
+
+.source-material {
+  display: grid;
+  gap: 5px;
+}
+
+.source-material span {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.source-material em {
+  width: fit-content;
+  border: 1px solid rgba(247, 241, 232, 0.14);
+  border-radius: 999px;
+  padding: 3px 8px;
+  color: var(--text);
+  font-style: normal;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.adaptation-note {
+  margin: 0;
+  color: var(--muted);
 }
 
 .listen-card ul,

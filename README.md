@@ -11,6 +11,7 @@ Groove Forge is a browser-based MIDI piano trainer for feel-first improvisation.
 - Modal-cell repetition and restraint
 - A/B teacher-vs-player comparison
 - One-correction microdrills
+- A gated mission path that unlocks the next idea only after a real copy pass
 
 ## Practice Loop
 
@@ -62,4 +63,6 @@ Free play is not the teacher. Explanation, demonstration, copying, variation, an
 
 The app should stop inventing every musical and audio primitive from scratch. Future content should mine legal/open sources such as BopLand jazz licks, jazznet piano-pattern MIDI, Jazzomat/Weimar transcription analysis, Impro-Visor grammars, and Open Music Theory explanations, then adapt those into tiny teachable missions with attribution and license notes.
 
-Current missions include source metadata in the app: source name, source URL, license, and the adaptation made for beginner piano practice.
+Current missions include source metadata in the app: source name, source URL, license, extracted material, source file/tool when available, and the adaptation made for beginner piano practice.
+
+This is a personal/non-commercial learning app, so GPL, CC BY-NC, research datasets, and freely available open tools are acceptable inputs as long as the app keeps the source trail visible.
