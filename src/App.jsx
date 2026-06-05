@@ -42,6 +42,8 @@ import { useMidi } from "./hooks/useMidi";
 
 const STORAGE_KEY = "groove-forge-state-v2";
 const KEY_LABELS = ["A", "W", "S", "E", "D", "F", "T", "G", "Y", "H", "U", "J", "K", "O", "L", "P", ";"];
+const COUNT_IN_BEATS = 4;
+const MIN_COUNT_IN_MS = 2600;
 
 function loadState() {
   try {
@@ -80,10 +82,11 @@ function missionUnlocked(lesson, progress) {
 function scheduleGroove(ctx, groove, beatMs, totalBeats, timersRef, options = {}) {
   if (!ctx || !groove) return;
   const includeComp = options.includeComp ?? true;
+  const startDelayMs = options.startDelayMs ?? 0;
   const bars = Math.ceil(totalBeats / 4);
   const schedule = (beat, callback) => {
     if (beat < 0 || beat > totalBeats + 0.25) return;
-    const id = window.setTimeout(callback, beat * beatMs);
+    const id = window.setTimeout(callback, startDelayMs + beat * beatMs);
     timersRef.current.push(id);
   };
 
@@ -101,6 +104,10 @@ function scheduleGroove(ctx, groove, beatMs, totalBeats, timersRef, options = {}
       });
     }
   }
+}
+
+function countInMsForTempo(beatMs) {
+  return Math.max(MIN_COUNT_IN_MS, COUNT_IN_BEATS * beatMs);
 }
 
 export default function App() {
@@ -136,8 +143,12 @@ export default function App() {
   const beatMs = 60000 / practiceLesson.bpm;
   const runLength = practiceLesson.bars * 4 * beatMs;
   const now = useTicker(isRunning);
-  const remaining = isRunning && startedAt ? runLength - (now - startedAt) : runLength;
-  const progressRatio = isRunning && startedAt ? Math.min(1, (now - startedAt) / runLength) : 0;
+  const isCountingIn = Boolean(isRunning && startedAt && now < startedAt);
+  const countInRemaining = isCountingIn ? startedAt - now : 0;
+  const countInStepMs = countInMsForTempo(beatMs) / COUNT_IN_BEATS;
+  const countInBeat = isCountingIn ? Math.max(1, Math.ceil(countInRemaining / countInStepMs)) : 0;
+  const remaining = isCountingIn ? countInRemaining : isRunning && startedAt ? runLength - (now - startedAt) : runLength;
+  const progressRatio = isRunning && startedAt ? Math.max(0, Math.min(1, (now - startedAt) / runLength)) : 0;
   const phraseNotes = useMemo(() => phraseToMidiNotes(practiceLesson.demoPhrase), [practiceLesson]);
   const heardDemo = Boolean(heardLessons[`${lesson.id}:${selectedVariant.id}`]);
   const earAnswer = earAnswers[lesson.id] ?? null;
@@ -182,7 +193,7 @@ export default function App() {
   const handleNote = useCallback(
     (noteEvent) => {
       playTone(noteEvent.midi, noteEvent.velocity);
-      if (!isRunning || !startedAt) return;
+      if (!isRunning || !startedAt || noteEvent.timestamp < startedAt) return;
       setEvents((current) => [...current, noteEvent]);
     },
     [isRunning, playTone, startedAt]
@@ -195,9 +206,9 @@ export default function App() {
   }, [journal, progress, roundResults]);
 
   useEffect(() => {
-    if (!isRunning || !startedAt || remaining > 0) return;
+    if (!isRunning || !startedAt || isCountingIn || remaining > 0) return;
     finishRun();
-  }, [isRunning, remaining, startedAt]);
+  }, [isCountingIn, isRunning, remaining, startedAt]);
 
   useEffect(() => () => clearTimers(false), [clearTimers]);
 
@@ -234,15 +245,29 @@ export default function App() {
     clearTimers();
     const ctx = getAudio();
     const nextBeatMs = 60000 / lessonOverride.bpm;
-    if (pulseOn) scheduleGroove(ctx, lessonOverride.groove, nextBeatMs, lessonOverride.bars * 4, timersRef, { includeComp: true });
+    const countInMs = countInMsForTempo(nextBeatMs);
+    const countInStepMs = countInMs / COUNT_IN_BEATS;
+    const startTime = performance.now() + countInMs;
+    for (let beat = 0; beat < COUNT_IN_BEATS; beat += 1) {
+      const id = window.setTimeout(() => {
+        playDrum(ctx, beat === COUNT_IN_BEATS - 1 ? "snare" : "hat", 0, beat === COUNT_IN_BEATS - 1 ? 62 : 44);
+      }, beat * countInStepMs);
+      timersRef.current.push(id);
+    }
+    if (pulseOn) {
+      scheduleGroove(ctx, lessonOverride.groove, nextBeatMs, lessonOverride.bars * 4, timersRef, {
+        includeComp: true,
+        startDelayMs: countInMs
+      });
+    }
     setRunMode(mode);
     setRunInstruction(instruction);
     setActiveStep(mode === "drill" ? "fix" : mode);
     setEvents([]);
     setLastScore(null);
-    setStartedAt(performance.now());
+    setStartedAt(startTime);
     setIsRunning(true);
-    setCoachNote(instruction ?? variantOverride.rule ?? (mode === "copy" ? lessonOverride.copyGoal : mode === "drill" ? lessonOverride.drillGoal : lessonOverride.varyGoal));
+    setCoachNote(`Get your hands on the keys. ${instruction ?? variantOverride.rule ?? (mode === "copy" ? lessonOverride.copyGoal : mode === "drill" ? lessonOverride.drillGoal : lessonOverride.varyGoal)}`);
   }
 
   function startWorkoutRound(round) {
@@ -449,9 +474,9 @@ export default function App() {
               Reset
             </button>
             {isRunning ? (
-              <button className="primary-button stop" onClick={finishRun}>
+              <button className="primary-button stop" onClick={isCountingIn ? resetRun : finishRun}>
                 <Square size={16} />
-                Finish
+                {isCountingIn ? "Cancel" : "Finish"}
               </button>
             ) : (
               <button className="primary-button" onClick={() => startRun("copy")} disabled={!heardDemo}>
@@ -493,12 +518,14 @@ export default function App() {
           runMode={runMode}
           runInstruction={runInstruction}
           selectedVariant={selectedVariant}
+          isCountingIn={isCountingIn}
+          countInBeat={countInBeat}
           onScreenNote={(midiNote) => handleNote(createNoteEvent(midiNote, 98, "screen"))}
         />
       </section>
 
       <aside className="feedback-panel">
-        <ScoreCard score={activeScore.score} title={lastScore ? "Run reviewed" : isRunning ? "Listening" : "Ready"} note={coachNote} />
+        <ScoreCard score={activeScore.score} title={lastScore ? "Run reviewed" : isCountingIn ? "Get ready" : isRunning ? "Listening" : "Ready"} note={coachNote} />
         <MasteryCard
           mastery={mastery}
           readiness={readiness}
@@ -581,6 +608,8 @@ function PracticeSurface({
   runMode,
   runInstruction,
   selectedVariant,
+  isCountingIn,
+  countInBeat,
   onScreenNote
 }) {
   const selectedEar = earAnswer !== null ? lesson.earCheck.options[earAnswer] : null;
@@ -650,7 +679,9 @@ function PracticeSurface({
             <span>{practiceLesson.key}</span>
             <strong>{practiceLesson.bpm} BPM</strong>
           </div>
-          <div className="clock">{formatClock(remaining)}</div>
+          <div className={`clock ${isCountingIn ? "counting" : ""}`}>
+            {isCountingIn ? `-${countInBeat}` : formatClock(remaining)}
+          </div>
           <div>
             <span>{runMode === "copy" ? "Copy target" : runMode === "drill" ? "Drill target" : "Variation target"}</span>
             <strong>{practiceLesson.targets.join(" / ")}</strong>
@@ -665,6 +696,8 @@ function PracticeSurface({
           progressRatio={progressRatio}
           runLength={runLength}
           startedAt={startedAt}
+          isCountingIn={isCountingIn}
+          countInBeat={countInBeat}
         />
 
         <div className="constraint-strip">
@@ -811,11 +844,18 @@ function GuideDrawer({ title, icon, tip, children }) {
   );
 }
 
-function GrooveLane({ events, lesson, phraseNotes, notesRevealed, progressRatio, runLength, startedAt }) {
+function GrooveLane({ events, lesson, phraseNotes, notesRevealed, progressRatio, runLength, startedAt, isCountingIn, countInBeat }) {
   const totalBeats = lesson.bars * 4;
   return (
-    <div className="lane" aria-label="Groove lane">
+    <div className={`lane ${isCountingIn ? "counting-in" : ""}`} aria-label="Groove lane">
       <div className="playhead" style={{ left: `${progressRatio * 100}%` }} />
+      {isCountingIn && (
+        <div className="count-in-overlay">
+          <span>Get ready</span>
+          <strong>{countInBeat}</strong>
+          <em>Move to the keys. Scoring starts after the count.</em>
+        </div>
+      )}
       {Array.from({ length: 8 }, (_, bar) => (
         <div className="beat-column" key={bar}>
           <span>{bar + 1}</span>

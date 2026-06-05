@@ -962,6 +962,12 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
+.clock.counting {
+  color: var(--amber);
+  border-color: rgba(242, 174, 69, 0.62);
+  box-shadow: 0 0 0 1px rgba(242, 174, 69, 0.12);
+}
+
 .lane {
   position: relative;
   overflow: hidden;
@@ -972,6 +978,38 @@ button {
     linear-gradient(180deg, rgba(48, 214, 189, 0.08), transparent 38%),
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.055) 0 1px, transparent 1px 12.5%),
     #121718;
+}
+
+.lane.counting-in .playhead {
+  opacity: 0.42;
+}
+
+.count-in-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  color: var(--text);
+  background: rgba(10, 13, 13, 0.72);
+  text-align: center;
+  pointer-events: none;
+}
+
+.count-in-overlay span,
+.count-in-overlay em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.count-in-overlay strong {
+  color: var(--amber);
+  font-size: clamp(54px, 8vw, 88px);
+  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
 }
 
 .playhead {
