@@ -462,7 +462,7 @@ export default function App() {
           </div>
         </header>
 
-        <LessonCoach
+        <PracticeSurface
           activeStep={activeStep}
           lesson={lesson}
           practiceLesson={practiceLesson}
@@ -484,40 +484,17 @@ export default function App() {
           earAnswer={earAnswer}
           notesRevealed={notesRevealed}
           demoPlaying={demoPlaying}
+          events={events}
+          phraseNotes={phraseNotes}
+          progressRatio={progressRatio}
+          runLength={runLength}
+          startedAt={startedAt}
+          remaining={remaining}
+          runMode={runMode}
+          runInstruction={runInstruction}
+          selectedVariant={selectedVariant}
+          onScreenNote={(midiNote) => handleNote(createNoteEvent(midiNote, 98, "screen"))}
         />
-
-        <div className="groove-board">
-          <div className="board-header">
-            <div>
-              <span>{practiceLesson.key}</span>
-              <strong>{practiceLesson.bpm} BPM</strong>
-            </div>
-            <div className="clock">{formatClock(remaining)}</div>
-            <div>
-              <span>{runMode === "copy" ? "Copy target" : runMode === "drill" ? "Drill target" : "Variation target"}</span>
-              <strong>{practiceLesson.targets.join(" / ")}</strong>
-            </div>
-          </div>
-
-          <GrooveLane
-            lesson={practiceLesson}
-            events={events}
-            phraseNotes={phraseNotes}
-            notesRevealed={notesRevealed}
-            progressRatio={progressRatio}
-            runLength={runLength}
-            startedAt={startedAt}
-          />
-
-          <div className="constraint-strip">
-            <Constraint icon={<Waves size={16} />} label="Groove" value={`${practiceLesson.groove.name} - ${practiceLesson.groove.feel}`} />
-            <Constraint icon={<Target size={16} />} label="Allowed notes" value={practiceLesson.palette.join(" ")} />
-            <Constraint icon={<ListMusic size={16} />} label="Model phrase" value={notesRevealed ? practiceLesson.demoPhrase.map((note) => note.note.replace(/\d$/, "")).join(" - ") : "Listen first - no labels yet"} />
-            <Constraint icon={<Gauge size={16} />} label="Rule" value={runInstruction ?? selectedVariant.rule ?? (runMode === "copy" ? practiceLesson.copyGoal : runMode === "drill" ? practiceLesson.drillGoal : practiceLesson.varyGoal)} />
-          </div>
-        </div>
-
-        <VirtualKeyboard lesson={practiceLesson} onNote={(midiNote) => handleNote(createNoteEvent(midiNote, 98, "screen"))} />
       </section>
 
       <aside className="feedback-panel">
@@ -574,7 +551,7 @@ export default function App() {
   );
 }
 
-function LessonCoach({
+function PracticeSurface({
   activeStep,
   lesson,
   practiceLesson,
@@ -594,56 +571,34 @@ function LessonCoach({
   heardDemo,
   earAnswer,
   notesRevealed,
-  demoPlaying
+  demoPlaying,
+  events,
+  phraseNotes,
+  progressRatio,
+  runLength,
+  startedAt,
+  remaining,
+  runMode,
+  runInstruction,
+  selectedVariant,
+  onScreenNote
 }) {
   const selectedEar = earAnswer !== null ? lesson.earCheck.options[earAnswer] : null;
   const earCorrect = earAnswer === lesson.earCheck.answer;
   const activeRound = workoutRounds.find((round) => round.id === activeRoundId);
+  const mainInstruction = activeRound?.instruction(practiceLesson) ?? practiceLesson.activeVariant?.rule ?? lesson.stealThis;
+  const phraseLabel = notesRevealed ? practiceLesson.demoPhrase.map((note) => note.note.replace(/\d$/, "")).join(" - ") : "Listen first";
 
   return (
-    <section className="coach-board">
-      <div className="rep-cockpit">
-        <div className="rep-main">
+    <section className="practice-surface">
+      <div className="practice-head">
+        <div className="lesson-intent">
           <div className="source-kicker">{lesson.world}</div>
           <h2>{activeRound ? activeRound.title : practiceLesson.activeVariant?.title ?? "Teacher lick"}</h2>
-          <p>{activeRound?.instruction(practiceLesson) ?? practiceLesson.activeVariant?.rule ?? lesson.stealThis}</p>
-          <div className="rep-hints">
-            <Tooltip label="Form" tip="The current version of the lick you are practicing.">
-              {practiceLesson.activeVariant?.label ?? "Full"}
-            </Tooltip>
-            <Tooltip label="Pocket" tip="How the lick should sit against the groove.">
-              {lesson.groove.swing}
-            </Tooltip>
-            <Tooltip label="Target" tip="Land on one of these notes so the phrase sounds intentional.">
-              {practiceLesson.targets.join(" / ")}
-            </Tooltip>
-            {lesson.taste?.touch && (
-              <Tooltip label="Touch" tip="The hand-feel to aim for while playing.">
-                {lesson.taste.touch}
-              </Tooltip>
-            )}
-          </div>
-          <div className="coach-actions">
-            <button className="primary-button" onClick={onDemo}>
-              <Headphones size={16} />
-              {demoPlaying ? "Playing" : "Hear"}
-            </button>
-            <button className="secondary-button" onClick={onCopy} disabled={!canPractice}>
-              <Play size={16} />
-              Copy
-            </button>
-            <button className="secondary-button" onClick={onNextRep}>
-              <Target size={16} />
-              Next rep
-            </button>
-            <button className="secondary-button" onClick={onVary} disabled={!canPractice}>
-              <Sparkles size={16} />
-              Twist
-            </button>
-          </div>
+          <p>{mainInstruction}</p>
         </div>
 
-        <div className="rep-side">
+        <div className="listen-card-lite">
           <div className="stepper compact" aria-label="Lesson steps">
             {lessonSteps.map((step) => (
               <div className={`step-pill ${activeStep === step.id ? "active" : ""}`} key={step.id} title={step.verb}>
@@ -670,6 +625,75 @@ function LessonCoach({
             {selectedEar && <small>{earCorrect ? lesson.earCheck.success : lesson.earCheck.miss}</small>}
           </div>
         </div>
+      </div>
+
+      <div className="practice-meta" aria-label="Practice targets">
+        <Tooltip label="Form" tip="The current version of the lick you are practicing.">
+          {practiceLesson.activeVariant?.label ?? "Full"}
+        </Tooltip>
+        <Tooltip label="Pocket" tip="How the lick should sit against the groove.">
+          {lesson.groove.swing}
+        </Tooltip>
+        <Tooltip label="Target" tip="Land on one of these notes so the phrase sounds intentional.">
+          {practiceLesson.targets.join(" / ")}
+        </Tooltip>
+        {lesson.taste?.touch && (
+          <Tooltip label="Touch" tip="The hand-feel to aim for while playing.">
+            {lesson.taste.touch}
+          </Tooltip>
+        )}
+      </div>
+
+      <div className="groove-board">
+        <div className="board-header">
+          <div>
+            <span>{practiceLesson.key}</span>
+            <strong>{practiceLesson.bpm} BPM</strong>
+          </div>
+          <div className="clock">{formatClock(remaining)}</div>
+          <div>
+            <span>{runMode === "copy" ? "Copy target" : runMode === "drill" ? "Drill target" : "Variation target"}</span>
+            <strong>{practiceLesson.targets.join(" / ")}</strong>
+          </div>
+        </div>
+
+        <GrooveLane
+          lesson={practiceLesson}
+          events={events}
+          phraseNotes={phraseNotes}
+          notesRevealed={notesRevealed}
+          progressRatio={progressRatio}
+          runLength={runLength}
+          startedAt={startedAt}
+        />
+
+        <div className="constraint-strip">
+          <Constraint icon={<Waves size={16} />} label="Groove" value={`${practiceLesson.groove.name} - ${practiceLesson.groove.feel}`} />
+          <Constraint icon={<Target size={16} />} label="Allowed notes" value={practiceLesson.palette.join(" ")} />
+          <Constraint icon={<ListMusic size={16} />} label="Model phrase" value={phraseLabel} />
+          <Constraint icon={<Gauge size={16} />} label="Rule" value={runInstruction ?? selectedVariant.rule ?? (runMode === "copy" ? practiceLesson.copyGoal : runMode === "drill" ? practiceLesson.drillGoal : practiceLesson.varyGoal)} />
+        </div>
+      </div>
+
+      <VirtualKeyboard lesson={practiceLesson} onNote={onScreenNote} />
+
+      <div className="coach-actions">
+        <button className="primary-button" onClick={onDemo}>
+          <Headphones size={16} />
+          {demoPlaying ? "Playing" : "Hear"}
+        </button>
+        <button className="secondary-button" onClick={onCopy} disabled={!canPractice}>
+          <Play size={16} />
+          Copy
+        </button>
+        <button className="secondary-button" onClick={onNextRep}>
+          <Target size={16} />
+          Next rep
+        </button>
+        <button className="secondary-button" onClick={onVary} disabled={!canPractice}>
+          <Sparkles size={16} />
+          Twist
+        </button>
       </div>
 
       <div className="guidance-dock">

@@ -29,8 +29,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background:
-    linear-gradient(135deg, rgba(48, 214, 189, 0.08), transparent 34%),
-    radial-gradient(circle at 80% 0%, rgba(242, 174, 69, 0.1), transparent 28%),
+    linear-gradient(90deg, rgba(95, 58, 31, 0.22) 0 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 260px),
     var(--bg);
 }
 
@@ -40,7 +40,7 @@ button {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 360px;
+  grid-template-columns: 232px minmax(0, 1fr) 304px;
   min-height: 100vh;
 }
 
@@ -62,6 +62,11 @@ button {
 
 .lesson-rail {
   border-right: 1px solid var(--line);
+  align-self: start;
+  max-height: 100vh;
+  overflow: auto;
+  position: sticky;
+  top: 0;
 }
 
 .feedback-panel {
@@ -69,6 +74,11 @@ button {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  align-self: start;
+  max-height: 100vh;
+  overflow: auto;
+  position: sticky;
+  top: 0;
 }
 
 .brand {
@@ -374,6 +384,8 @@ button {
   padding: 9px 10px;
   background: rgba(0, 0, 0, 0.15);
   display: grid;
+  grid-template-rows: auto auto;
+  align-content: start;
   gap: 4px;
 }
 
@@ -1303,9 +1315,359 @@ button {
   padding: 10px;
 }
 
+/* Human practice pass: one instrument surface, quieter rails, fewer competing boxes. */
+.lesson-rail,
+.feedback-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.006)),
+    rgba(13, 15, 15, 0.92);
+}
+
+.brand {
+  margin-bottom: 30px;
+}
+
+.brand-mark {
+  box-shadow: none;
+}
+
+.rail-section {
+  margin-top: 0;
+}
+
+.lesson-card {
+  min-height: 72px;
+  border-bottom: 1px solid rgba(247, 241, 232, 0.09);
+  border-radius: 0;
+  padding: 15px 8px;
+}
+
+.lesson-card:hover {
+  background: rgba(247, 241, 232, 0.035);
+}
+
+.lesson-card.active {
+  border: 1px solid rgba(242, 174, 69, 0.54);
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(242, 174, 69, 0.16), rgba(247, 241, 232, 0.035));
+}
+
+.midi-panel {
+  margin-top: 26px;
+  box-shadow: none;
+  background: rgba(48, 214, 189, 0.045);
+}
+
+.stage {
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 16px;
+  padding: 20px 22px;
+}
+
+.topbar {
+  min-height: 46px;
+  border-bottom: 1px solid rgba(247, 241, 232, 0.09);
+  padding-bottom: 14px;
+}
+
+.topbar h1 {
+  font-size: 32px;
+}
+
+.topbar p {
+  margin-top: 5px;
+}
+
+.practice-surface {
+  min-width: 0;
+  align-self: start;
+  border: 1px solid rgba(247, 241, 232, 0.12);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(103, 58, 32, 0.52) 0 10px, transparent 10px calc(100% - 10px), rgba(103, 58, 32, 0.52) calc(100% - 10px)),
+    linear-gradient(180deg, rgba(247, 241, 232, 0.045), rgba(255, 255, 255, 0.015));
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.32);
+  padding: 22px 24px 18px;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.practice-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.44fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.lesson-intent {
+  display: grid;
+  gap: 8px;
+}
+
+.lesson-intent h2 {
+  margin: 0;
+  max-width: 780px;
+  font-size: clamp(30px, 3.2vw, 48px);
+  line-height: 1;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+}
+
+.lesson-intent p {
+  margin: 0;
+  max-width: 740px;
+  color: #f4c86e;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.source-kicker {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.listen-card-lite {
+  display: grid;
+  gap: 12px;
+}
+
+.listen-card-lite .stepper.compact {
+  display: none;
+}
+
+.listen-card-lite .ear-check-inline {
+  gap: 7px;
+}
+
+.listen-card-lite .ear-option {
+  min-height: 32px;
+  padding: 6px 9px;
+  font-size: 12px;
+}
+
+.practice-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  align-items: start;
+}
+
+.practice-meta .tooltip-wrap,
+.constraint,
+.feedback-row,
+.mastery-summary > div,
+.mastery-row {
+  background: rgba(0, 0, 0, 0.12);
+  box-shadow: none;
+}
+
+.practice-meta .tooltip-wrap {
+  height: 58px;
+  min-height: 0;
+  border-color: rgba(247, 241, 232, 0.1);
+}
+
+.practice-meta .tooltip-wrap strong {
+  padding-right: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.practice-surface .groove-board,
+.practice-surface .keyboard-wrap {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.practice-surface .groove-board {
+  min-height: 0;
+  padding: 0;
+  gap: 12px;
+  align-content: start;
+}
+
+.board-header {
+  border-top: 1px solid rgba(247, 241, 232, 0.11);
+  padding-top: 12px;
+}
+
+.clock {
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.lane {
+  height: 220px;
+  min-height: 220px;
+  border-color: rgba(247, 241, 232, 0.14);
+  background:
+    linear-gradient(180deg, rgba(247, 241, 232, 0.035), transparent 35%),
+    repeating-linear-gradient(0deg, rgba(247, 241, 232, 0.05) 0 1px, transparent 1px 33px),
+    repeating-linear-gradient(90deg, rgba(247, 241, 232, 0.075) 0 1px, transparent 1px 12.5%),
+    #111515;
+}
+
+.constraint-strip {
+  grid-template-columns: 0.95fr 1fr 1.05fr 1.3fr;
+  gap: 6px;
+}
+
+.constraint {
+  min-height: 48px;
+  padding: 7px 9px;
+  gap: 3px 6px;
+}
+
+.constraint span {
+  font-size: 10px;
+}
+
+.constraint strong {
+  font-size: 12px;
+  line-height: 1.22;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.keyboard-wrap {
+  padding: 0;
+  align-self: start;
+}
+
+.keyboard-wrap .panel-heading {
+  display: none;
+}
+
+.keyboard {
+  height: 124px;
+  gap: 2px;
+  padding: 0 2px;
+  border-top: 7px solid rgba(95, 58, 31, 0.78);
+  background: linear-gradient(180deg, rgba(95, 58, 31, 0.4), rgba(0, 0, 0, 0.18));
+}
+
+.piano-key {
+  border-color: rgba(20, 20, 19, 0.38);
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.38), transparent 18% 82%, rgba(0, 0, 0, 0.09)),
+    #eee6d9;
+  box-shadow: inset 0 -9px 14px rgba(0, 0, 0, 0.16);
+}
+
+.piano-key.black {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent 35% 70%, rgba(0, 0, 0, 0.4)),
+    #111313;
+}
+
+.piano-key.allowed {
+  box-shadow: inset 0 -6px 0 rgba(48, 214, 189, 0.34), inset 0 -9px 14px rgba(0, 0, 0, 0.16);
+}
+
+.piano-key.target {
+  box-shadow: inset 0 -7px 0 rgba(242, 174, 69, 0.78), inset 0 -9px 14px rgba(0, 0, 0, 0.16);
+}
+
+.coach-actions {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  align-items: start;
+}
+
+.coach-actions .primary-button,
+.coach-actions .secondary-button {
+  height: 64px;
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: center;
+  justify-content: start;
+  text-align: left;
+  font-weight: 850;
+}
+
+.guidance-dock {
+  margin-top: 2px;
+  border-top-color: rgba(247, 241, 232, 0.09);
+}
+
+.guide-drawer {
+  background: transparent;
+}
+
+.guide-drawer summary {
+  padding-inline: 4px;
+}
+
+.feedback-panel {
+  gap: 14px;
+}
+
+.score-card,
+.mastery-card,
+.correction-card,
+.reflection-card,
+.journal {
+  border-color: rgba(247, 241, 232, 0.1);
+  background: transparent;
+  box-shadow: none;
+}
+
+.score-card {
+  grid-template-columns: 70px 1fr;
+  padding: 0 0 14px;
+  border: 0;
+  border-bottom: 1px solid rgba(247, 241, 232, 0.1);
+}
+
+.score-ring {
+  width: 68px;
+  height: 68px;
+}
+
+.score-ring span {
+  font-size: 22px;
+}
+
+.score-card h2 {
+  font-size: 18px;
+}
+
+.mastery-card,
+.correction-card,
+.reflection-card,
+.journal,
+.feedback-row {
+  padding: 12px 0;
+  border-width: 0 0 1px;
+  border-radius: 0;
+}
+
+.feedback-list {
+  gap: 0;
+  max-height: 236px;
+  overflow: hidden;
+}
+
+.mastery-list {
+  max-height: 292px;
+  overflow: hidden;
+}
+
 @media (max-width: 1180px) {
   .app-shell {
-    grid-template-columns: 240px minmax(0, 1fr);
+    grid-template-columns: 220px minmax(0, 1fr);
   }
 
   .feedback-panel {
@@ -1313,13 +1675,21 @@ button {
     border-left: 0;
     border-top: 1px solid var(--line);
     display: grid;
-    grid-template-columns: 1fr 1.5fr;
+    grid-template-columns: 0.8fr 1fr 1fr;
   }
 
   .journal,
   .actions-grid,
   .reflection-card {
     grid-column: 1 / -1;
+  }
+
+  .practice-head {
+    grid-template-columns: 1fr;
+  }
+
+  .listen-card-lite {
+    grid-template-columns: 1fr 1fr;
   }
 
   .coach-grid {
@@ -1341,6 +1711,28 @@ button {
   .lesson-rail {
     border-right: 0;
     border-bottom: 1px solid var(--line);
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .lesson-rail .brand {
+    margin-bottom: 14px;
+  }
+
+  .lesson-rail .rail-section {
+    max-height: 214px;
+    overflow: auto;
+    padding-right: 4px;
+  }
+
+  .lesson-card {
+    min-height: 58px;
+    padding-block: 10px;
+  }
+
+  .midi-panel {
+    display: none;
   }
 
   .topbar,
@@ -1352,9 +1744,23 @@ button {
     font-size: 28px;
   }
 
+  .practice-surface {
+    padding: 16px;
+  }
+
+  .lesson-intent h2 {
+    font-size: 32px;
+  }
+
+  .lesson-intent p {
+    font-size: 15px;
+  }
+
   .constraint-strip,
   .feedback-panel,
-  .stepper {
+  .stepper,
+  .practice-meta,
+  .listen-card-lite {
     grid-template-columns: 1fr;
   }
 
@@ -1398,12 +1804,18 @@ button {
   .coach-actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
   }
 
   .coach-actions button {
     min-width: 0;
     width: 100%;
     padding-inline: 9px;
+  }
+
+  .coach-actions .primary-button,
+  .coach-actions .secondary-button {
+    min-height: 52px;
   }
 
   .step-pill {
