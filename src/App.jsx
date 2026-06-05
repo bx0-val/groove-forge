@@ -66,6 +66,7 @@ function useTicker(active) {
   const [now, setNow] = useState(performance.now());
   useEffect(() => {
     if (!active) return;
+    setNow(performance.now());
     const id = window.setInterval(() => setNow(performance.now()), 80);
     return () => window.clearInterval(id);
   }, [active]);
@@ -118,6 +119,7 @@ export default function App() {
   const [isRunning, setIsRunning] = useState(false);
   const [runMode, setRunMode] = useState("copy");
   const [runInstruction, setRunInstruction] = useState(null);
+  const [runArmedAt, setRunArmedAt] = useState(null);
   const [startedAt, setStartedAt] = useState(null);
   const [events, setEvents] = useState([]);
   const [lastScore, setLastScore] = useState(null);
@@ -144,9 +146,10 @@ export default function App() {
   const beatMs = 60000 / practiceLesson.bpm;
   const runLength = practiceLesson.bars * 4 * beatMs;
   const now = useTicker(isRunning || demoPlaying);
-  const isCountingIn = Boolean(isRunning && startedAt && now < startedAt);
+  const isCountingIn = Boolean(isRunning && runArmedAt && startedAt && now < startedAt);
   const countInRemaining = isCountingIn ? startedAt - now : 0;
   const countInStepMs = countInMsForTempo(beatMs) / COUNT_IN_BEATS;
+  const countInProgress = isCountingIn && runArmedAt && startedAt ? Math.max(0, Math.min(1, (now - runArmedAt) / (startedAt - runArmedAt))) : 0;
   const countInBeat = isCountingIn ? Math.min(COUNT_IN_BEATS, Math.max(1, COUNT_IN_BEATS - Math.ceil(countInRemaining / countInStepMs) + 1)) : 0;
   const remaining = isCountingIn ? countInRemaining : isRunning && startedAt ? runLength - (now - startedAt) : runLength;
   const progressRatio = isRunning && startedAt ? Math.max(0, Math.min(1, (now - startedAt) / runLength)) : 0;
@@ -257,7 +260,8 @@ export default function App() {
     const nextBeatMs = 60000 / lessonOverride.bpm;
     const countInMs = countInMsForTempo(nextBeatMs);
     const countInStepMs = countInMs / COUNT_IN_BEATS;
-    const startTime = performance.now() + countInMs;
+    const armedAt = performance.now();
+    const startTime = armedAt + countInMs;
     for (let beat = 0; beat < COUNT_IN_BEATS; beat += 1) {
       const id = window.setTimeout(() => {
         playDrum(ctx, beat === COUNT_IN_BEATS - 1 ? "snare" : "hat", 0, beat === COUNT_IN_BEATS - 1 ? 62 : 44);
@@ -275,6 +279,7 @@ export default function App() {
     setActiveStep(mode === "drill" ? "fix" : mode);
     setEvents([]);
     setLastScore(null);
+    setRunArmedAt(armedAt);
     setStartedAt(startTime);
     setIsRunning(true);
     setCoachNote(`Get your hands on the keys. ${instruction ?? variantOverride.rule ?? (mode === "copy" ? lessonOverride.copyGoal : mode === "drill" ? lessonOverride.drillGoal : lessonOverride.varyGoal)}`);
@@ -293,6 +298,7 @@ export default function App() {
     const result = scoreTake(events, practiceLesson, startedAt ?? performance.now(), runMode);
     clearTimers();
     setIsRunning(false);
+    setRunArmedAt(null);
     setLastScore(result);
     setActiveStep("compare");
     setCoachNote(result.nextStep);
@@ -327,6 +333,7 @@ export default function App() {
   function resetRun() {
     clearTimers();
     setIsRunning(false);
+    setRunArmedAt(null);
     setStartedAt(null);
     setEvents([]);
     setLastScore(null);
@@ -530,6 +537,7 @@ export default function App() {
           selectedVariant={selectedVariant}
           isCountingIn={isCountingIn}
           countInBeat={countInBeat}
+          countInProgress={countInProgress}
           demoProgress={demoProgress}
           onScreenNote={(midiNote) => handleNote(createNoteEvent(midiNote, 98, "screen"))}
         />
@@ -621,6 +629,7 @@ function PracticeSurface({
   selectedVariant,
   isCountingIn,
   countInBeat,
+  countInProgress,
   demoProgress,
   onScreenNote
 }) {
@@ -710,6 +719,7 @@ function PracticeSurface({
           startedAt={startedAt}
           isCountingIn={isCountingIn}
           countInBeat={countInBeat}
+          countInProgress={countInProgress}
           demoPlaying={demoPlaying}
           demoProgress={demoProgress}
         />
@@ -858,19 +868,35 @@ function GuideDrawer({ title, icon, tip, children }) {
   );
 }
 
-function GrooveLane({ events, lesson, phraseNotes, notesRevealed, progressRatio, runLength, startedAt, isCountingIn, countInBeat, demoPlaying, demoProgress }) {
+function GrooveLane({ events, lesson, phraseNotes, notesRevealed, progressRatio, runLength, startedAt, isCountingIn, countInBeat, countInProgress, demoPlaying, demoProgress }) {
   const totalBeats = lesson.bars * 4;
-  const playheadProgress = demoPlaying ? demoProgress : progressRatio;
+  const timelineBeats = totalBeats + COUNT_IN_BEATS;
+  const phraseStartRatio = COUNT_IN_BEATS / timelineBeats;
+  const phraseWidthRatio = totalBeats / timelineBeats;
+  const playheadProgress = isCountingIn
+    ? (countInProgress * COUNT_IN_BEATS) / timelineBeats
+    : demoPlaying
+      ? phraseStartRatio + demoProgress * phraseWidthRatio
+      : startedAt
+        ? phraseStartRatio + progressRatio * phraseWidthRatio
+        : 0;
+  const beatLeft = (beat) => ((COUNT_IN_BEATS + beat) / timelineBeats) * 100;
   return (
     <div className={`lane ${isCountingIn ? "counting-in" : ""} ${demoPlaying ? "track-listening" : ""}`} aria-label="Groove lane">
       {demoPlaying && (
-        <div className="track-playback" style={{ width: `${demoProgress * 100}%` }}>
+        <div
+          className="track-playback"
+          style={{
+            left: `${phraseStartRatio * 100}%`,
+            width: `${demoProgress * phraseWidthRatio * 100}%`
+          }}
+        >
           <span>Hear playback</span>
         </div>
       )}
       <div className="playhead" style={{ left: `${playheadProgress * 100}%` }} />
       {isCountingIn && (
-        <div className="track-count-in" aria-label="Four-beat count-in">
+        <div className="track-count-in" style={{ width: `${phraseStartRatio * 100}%` }} aria-label="Four-beat count-in">
           <em>Count in</em>
           {Array.from({ length: COUNT_IN_BEATS }, (_, index) => {
             const beat = index + 1;
@@ -878,7 +904,7 @@ function GrooveLane({ events, lesson, phraseNotes, notesRevealed, progressRatio,
               <span
                 className={`count-beat ${beat === countInBeat ? "active" : beat < countInBeat ? "done" : ""}`}
                 key={beat}
-                style={{ left: `${((beat - 0.5) / totalBeats) * 100}%` }}
+                style={{ left: `${((beat - 0.5) / COUNT_IN_BEATS) * 100}%` }}
               >
                 {beat}
               </span>
@@ -887,8 +913,16 @@ function GrooveLane({ events, lesson, phraseNotes, notesRevealed, progressRatio,
           <strong>play on the next 1</strong>
         </div>
       )}
-      {Array.from({ length: 8 }, (_, bar) => (
-        <div className="beat-column" key={bar}>
+      <div className="phrase-start-line" style={{ left: `${phraseStartRatio * 100}%` }}>
+        <span>Beat 1</span>
+      </div>
+      {Array.from({ length: COUNT_IN_BEATS }, (_, index) => (
+        <div className="pre-roll-column" style={{ left: `${(index / timelineBeats) * 100}%`, width: `${(1 / timelineBeats) * 100}%` }} key={`pre-${index}`}>
+          <span>{index + 1}</span>
+        </div>
+      ))}
+      {Array.from({ length: totalBeats }, (_, bar) => (
+        <div className="beat-column" style={{ left: `${beatLeft(bar)}%`, width: `${(1 / timelineBeats) * 100}%` }} key={bar}>
           <span>{bar + 1}</span>
         </div>
       ))}
@@ -897,7 +931,7 @@ function GrooveLane({ events, lesson, phraseNotes, notesRevealed, progressRatio,
           className={`note-chip ghost ${notesRevealed ? "" : "hidden-label"}`}
           key={`${note.note}-${note.beat}-${index}`}
           style={{
-            left: `${Math.max(2, Math.min(96, (note.beat / totalBeats) * 100))}%`,
+            left: `${Math.max(2, Math.min(98, beatLeft(note.beat)))}%`,
             top: `${15 + ((note.midi % 12) / 12) * 68}%`
           }}
         >
@@ -905,7 +939,7 @@ function GrooveLane({ events, lesson, phraseNotes, notesRevealed, progressRatio,
         </div>
       ))}
       {events.slice(-32).map((event) => {
-        const offset = startedAt ? ((event.timestamp - startedAt) / runLength) * 100 : 0;
+        const offset = startedAt ? phraseStartRatio * 100 + (((event.timestamp - startedAt) / runLength) * phraseWidthRatio * 100) : 0;
         const laneY = 15 + ((event.midi % 12) / 12) * 68;
         return (
           <div

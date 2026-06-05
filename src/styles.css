@@ -1011,7 +1011,7 @@ button {
 
 .track-count-in {
   position: absolute;
-  inset: 0;
+  inset: 0 auto 0 0;
   z-index: 5;
   background: linear-gradient(90deg, rgba(242, 174, 69, 0.14), rgba(10, 13, 13, 0.2) 52%, transparent);
   color: var(--text);
@@ -1066,28 +1066,58 @@ button {
   background: var(--amber);
 }
 
+.phrase-start-line {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 4;
+  width: 2px;
+  background: rgba(242, 174, 69, 0.72);
+  box-shadow: 0 0 18px rgba(242, 174, 69, 0.35);
+}
+
+.phrase-start-line span {
+  position: absolute;
+  top: 10px;
+  left: 7px;
+  color: var(--amber);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .playhead {
   position: absolute;
   inset: 0 auto 0 0;
   width: 3px;
   background: var(--amber);
   box-shadow: 0 0 22px rgba(242, 174, 69, 0.75);
-  z-index: 3;
+  z-index: 8;
 }
 
-.beat-column {
-  position: relative;
-  height: 100%;
-  width: 12.5%;
-  display: inline-block;
+.beat-column,
+.pre-roll-column {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.055);
 }
 
-.beat-column span {
+.beat-column span,
+.pre-roll-column span {
   position: absolute;
   bottom: 12px;
   left: 12px;
   color: rgba(247, 241, 232, 0.3);
   font-weight: 800;
+}
+
+.pre-roll-column {
+  background: rgba(242, 174, 69, 0.035);
+}
+
+.pre-roll-column span {
+  color: rgba(242, 174, 69, 0.42);
 }
 
 .note-chip {
