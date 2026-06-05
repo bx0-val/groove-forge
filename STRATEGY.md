@@ -38,6 +38,8 @@ Also move from "generated-from-scratch music toy" to "source-first practice syst
 
 The current v3 implementation now includes a source-aware mission catalog, visible attribution/license/adaptation notes, extracted source material, ear checks before model-note reveal, A/B comparison controls, one-correction microdrills, and mission gating.
 
+The next strategic layer is taste literacy. Groove Forge should give the learner a usable glimpse into how a favorite artist thinks without pretending to ship official artist lessons. Current taste studies are original exercises inspired by public, high-level musical instincts around Nujabes, Chet Baker, Kanye West, Haruka Nakamura, Marcus D, Ljones, Nitsua, Cise Starr, and Uyama Hiroto. The learning target is "what to bite": entrance timing, phrase length, breath, repetition, color-note choice, contour, cadence grouping, and restraint.
+
 Every session should run this loop:
 
 1. Start a beautiful loop.
@@ -59,6 +61,7 @@ The product should feel closer to a playable call-response instrument than a les
 - Feedback must replay the mistake. The most important correction is an A/B playback, not a paragraph.
 - Scores must unlock a better musical constraint, not reward button pressing.
 - Constraints should feel like style. A limited palette should sound like a Nujabes loop room or Lateef modal drone, not like a rule sheet.
+- Taste should be explicit. Each artist-flow study should tell the player what instinct to copy, what behavior to avoid, and how to practice it.
 - Saved riffs become curriculum. Yesterday's phrase should return in a new key, rhythm, or groove.
 
 ## North Star UX
@@ -154,6 +157,22 @@ Build a small source-ingestion layer:
 Each imported/adapted idea should store its source, license, original context, simplification, transposition, and learning behavior.
 
 Because this is explicitly non-commercial, GPL, CC BY-NC, research, and freely available software/datasets are acceptable sources. The constraint is not commercial licensing risk; it is keeping the source trail honest and avoiding direct embedding of copyrighted commercial recordings or fake-book melodies.
+
+### Track 7: Taste Profiles
+
+Build lessons around artist-flow profiles:
+
+- Nujabes: late entrance, warm minor answer, loop restraint.
+- Chet Baker: sung question, breath, shorter answer.
+- Kanye West: tiny soul-chop cell, hard repeat, one arranged landing.
+- Haruka Nakamura: soft ostinato, memory, suspended color.
+- Marcus D: cinematic arpeggio lift, clear top note, plain resolve.
+- Ljones: dusty behind-the-beat pocket and small motif.
+- Nitsua: inward descending loop and unresolved nostalgia.
+- Cise Starr: MC cadence grouping translated into piano rhythm.
+- Uyama Hiroto: modal room, airy leap, calm color-tone descent.
+
+These profiles should stay visible in the lesson UI as mindset, bite traits, practice target, touch target, and guardrail. They are original educational exercises, not copied songs.
 
 ## Non-Goals
 

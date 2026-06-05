@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { lessons } from "./challenges";
 import { scoreTake } from "./scoring";
 import { noteToMidi, pitchClass } from "./music";
+import { tasteProfiles } from "../data/tasteProfiles";
 
 const lesson = lessons[0];
 
@@ -29,6 +30,42 @@ describe("scoreTake", () => {
       expect(item.source.fragmentId).toBeTruthy();
       expect(item.source.material.length).toBeGreaterThan(0);
       expect(item.unlock).toBeTruthy();
+      expect(item.taste).toMatchObject({
+        artist: expect.any(String),
+        lens: expect.any(String),
+        mindset: expect.any(String),
+        avoid: expect.any(String),
+        practice: expect.any(String)
+      });
+      expect(item.taste.bite.length).toBeGreaterThanOrEqual(3);
+    });
+  });
+
+  it("keeps artist-flow studies broad, explicit, and non-quote based", () => {
+    const requiredProfiles = [
+      "nujabes",
+      "chetBaker",
+      "kanye",
+      "harukaNakamura",
+      "marcusD",
+      "ljones",
+      "nitsua",
+      "ciseStarr",
+      "uyamaHiroto"
+    ];
+
+    requiredProfiles.forEach((profileId) => {
+      expect(tasteProfiles[profileId]).toBeTruthy();
+      expect(tasteProfiles[profileId].bite.length).toBeGreaterThanOrEqual(3);
+      expect(tasteProfiles[profileId].avoid.toLowerCase()).not.toContain("exact");
+    });
+
+    const artistStudies = lessons.filter((item) => item.source.kind === "artist-flow-study");
+    expect(artistStudies.length).toBeGreaterThanOrEqual(8);
+    artistStudies.forEach((item) => {
+      expect(item.unlock.type).toBe("open");
+      expect(item.source.license.toLowerCase()).toContain("original educational exercise");
+      expect(item.why.length).toBeGreaterThan(80);
     });
   });
 

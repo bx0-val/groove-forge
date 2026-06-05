@@ -334,7 +334,7 @@ export default function App() {
                 <span className="lesson-icon">{active ? <Disc3 size={18} /> : <Circle size={12} />}</span>
                 <span>
                   <strong>{item.title}</strong>
-                  <small>{unlocked ? item.world : item.unlock.label}</small>
+                  <small>{unlocked ? item.taste?.artist ?? item.world : item.unlock.label}</small>
                 </span>
                 <em>{unlocked ? lessonProgress?.best ? lessonProgress.best : "--" : "lock"}</em>
               </button>
@@ -498,6 +498,18 @@ function LessonCoach({ activeStep, lesson, onDemo, onCopy, onVary, canPractice, 
           <div className="source-kicker">{lesson.world}</div>
           <h3>Steal this move</h3>
           <p>{lesson.stealThis}</p>
+          {lesson.taste && (
+            <div className="taste-box">
+              <span>{lesson.taste.artist}</span>
+              <strong>{lesson.taste.lens}</strong>
+              <p>{lesson.taste.mindset}</p>
+              <div className="taste-chips">
+                {lesson.taste.bite.map((item) => <em key={item}>{item}</em>)}
+              </div>
+              <small>{lesson.taste.practice}</small>
+              <small className="taste-warning">{lesson.taste.avoid}</small>
+            </div>
+          )}
           <div className="source-box">
             <strong>{lesson.source.name}</strong>
             <span>{lesson.source.license}</span>

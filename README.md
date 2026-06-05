@@ -2,6 +2,8 @@
 
 Groove Forge is a browser-based MIDI piano trainer for feel-first improvisation. It now teaches through source-driven missions: hear an attributed musical idea, answer an ear check, copy the phrase, compare your take against the teacher, fix one thing, then remix.
 
+The current build adds a taste curriculum: original playable studies inspired by Nujabes, Chet Baker, Kanye West, Haruka Nakamura, Marcus D, Ljones, Nitsua, Cise Starr, and Uyama Hiroto. These are not copied songs or commercial melodies. They are bite-sized flow studies that make the learner practice the musical instinct: late entrance, breath, sample-chop repetition, soft ostinato, cinematic lift, dusty pocket, inward descent, MC cadence, and modal air.
+
 ## What It Teaches
 
 - BopLand-style ii-V-I vocabulary and short reshufflable lick fragments
@@ -9,6 +11,8 @@ Groove Forge is a browser-based MIDI piano trainer for feel-first improvisation.
 - jazznet-style chord/progression target-note practice
 - Call-response phrasing, silence, and breath
 - Modal-cell repetition and restraint
+- Artist-flow taste profiles: what to bite, what to avoid, and how to practice it
+- Original noncommercial style studies that teach public, high-level artist instincts without embedding copyrighted recordings
 - A/B teacher-vs-player comparison
 - One-correction microdrills
 - A gated mission path that unlocks the next idea only after a real copy pass
@@ -66,3 +70,5 @@ The app should stop inventing every musical and audio primitive from scratch. Fu
 Current missions include source metadata in the app: source name, source URL, license, extracted material, source file/tool when available, and the adaptation made for beginner piano practice.
 
 This is a personal/non-commercial learning app, so GPL, CC BY-NC, research datasets, and freely available open tools are acceptable inputs as long as the app keeps the source trail visible.
+
+The artist-flow lessons use the same trail, but label themselves as original educational taste studies. The point is to study compositional instincts and phrasing behavior, not to transcribe protected melodies.

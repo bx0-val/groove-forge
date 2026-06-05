@@ -173,6 +173,18 @@ Notes:
 
 Source: https://github.com/Impro-Visor/Impro-Visor
 
+## Artist-Flow Taste Studies
+
+Use: original studies that convert public, high-level artist instincts into small playable exercises.
+
+Notes:
+
+- These are not source transcriptions, cover lessons, or copied commercial melodies.
+- They should store a visible taste profile: artist, lens, mindset, bite traits, what to avoid, practice target, and touch target.
+- They are useful because the learner came with taste before technique. Naming the instinct makes the practice feel like music instead of a generic note drill.
+- The current catalog includes Nujabes, Chet Baker, Kanye West, Haruka Nakamura, Marcus D, Ljones, Nitsua, Cise Starr, and Uyama Hiroto inspired profiles.
+- Best use: pair each profile with a small original phrase, an ear question, and a single corrective drill.
+
 ## Theory/Transformation Libraries
 
 ### Tonal
