@@ -1012,6 +1012,34 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
+.count-in-beats {
+  display: grid;
+  grid-template-columns: repeat(4, 34px);
+  gap: 8px;
+}
+
+.count-in-beats span {
+  height: 34px;
+  border: 1px solid rgba(247, 241, 232, 0.14);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background: rgba(0, 0, 0, 0.28);
+  font-weight: 900;
+}
+
+.count-in-beats span.done {
+  color: var(--teal);
+  border-color: rgba(48, 214, 189, 0.45);
+}
+
+.count-in-beats span.active {
+  color: #101314;
+  border-color: rgba(242, 174, 69, 0.8);
+  background: var(--amber);
+}
+
 .playhead {
   position: absolute;
   inset: 0 auto 0 0;
@@ -1633,6 +1661,27 @@ button {
   justify-content: start;
   text-align: left;
   font-weight: 850;
+}
+
+.hear-button .playback-bar {
+  grid-column: 1 / -1;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(13, 18, 18, 0.28);
+}
+
+.hear-button .playback-bar span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: rgba(13, 18, 18, 0.68);
+  transition: width 80ms linear;
+}
+
+.hear-button:not(.playing) .playback-bar {
+  opacity: 0;
 }
 
 .guidance-dock {

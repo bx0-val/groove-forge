@@ -43,7 +43,6 @@ import { useMidi } from "./hooks/useMidi";
 const STORAGE_KEY = "groove-forge-state-v2";
 const KEY_LABELS = ["A", "W", "S", "E", "D", "F", "T", "G", "Y", "H", "U", "J", "K", "O", "L", "P", ";"];
 const COUNT_IN_BEATS = 4;
-const MIN_COUNT_IN_MS = 2600;
 
 function loadState() {
   try {
@@ -107,7 +106,7 @@ function scheduleGroove(ctx, groove, beatMs, totalBeats, timersRef, options = {}
 }
 
 function countInMsForTempo(beatMs) {
-  return Math.max(MIN_COUNT_IN_MS, COUNT_IN_BEATS * beatMs);
+  return COUNT_IN_BEATS * beatMs;
 }
 
 export default function App() {
@@ -125,6 +124,8 @@ export default function App() {
   const [pulseOn, setPulseOn] = useState(true);
   const [focusMode, setFocusMode] = useState(false);
   const [demoPlaying, setDemoPlaying] = useState(false);
+  const [demoStartedAt, setDemoStartedAt] = useState(null);
+  const [demoDurationMs, setDemoDurationMs] = useState(0);
   const [coachNote, setCoachNote] = useState("Start by hearing the model phrase. Your job is to copy before you decorate.");
   const [heardLessons, setHeardLessons] = useState({});
   const [earAnswers, setEarAnswers] = useState({});
@@ -142,13 +143,14 @@ export default function App() {
   const readiness = useMemo(() => summarizeProfessionalReadiness(lessons, progress, roundResults), [progress, roundResults]);
   const beatMs = 60000 / practiceLesson.bpm;
   const runLength = practiceLesson.bars * 4 * beatMs;
-  const now = useTicker(isRunning);
+  const now = useTicker(isRunning || demoPlaying);
   const isCountingIn = Boolean(isRunning && startedAt && now < startedAt);
   const countInRemaining = isCountingIn ? startedAt - now : 0;
   const countInStepMs = countInMsForTempo(beatMs) / COUNT_IN_BEATS;
-  const countInBeat = isCountingIn ? Math.max(1, Math.ceil(countInRemaining / countInStepMs)) : 0;
+  const countInBeat = isCountingIn ? Math.min(COUNT_IN_BEATS, Math.max(1, COUNT_IN_BEATS - Math.ceil(countInRemaining / countInStepMs) + 1)) : 0;
   const remaining = isCountingIn ? countInRemaining : isRunning && startedAt ? runLength - (now - startedAt) : runLength;
   const progressRatio = isRunning && startedAt ? Math.max(0, Math.min(1, (now - startedAt) / runLength)) : 0;
+  const demoProgress = demoPlaying && demoStartedAt && demoDurationMs ? Math.max(0, Math.min(1, (now - demoStartedAt) / demoDurationMs)) : 0;
   const phraseNotes = useMemo(() => phraseToMidiNotes(practiceLesson.demoPhrase), [practiceLesson]);
   const heardDemo = Boolean(heardLessons[`${lesson.id}:${selectedVariant.id}`]);
   const earAnswer = earAnswers[lesson.id] ?? null;
@@ -179,7 +181,11 @@ export default function App() {
     demoRequestRef.current += 1;
     timersRef.current.forEach((id) => window.clearTimeout(id));
     timersRef.current = [];
-    if (resetPlaying) setDemoPlaying(false);
+    if (resetPlaying) {
+      setDemoPlaying(false);
+      setDemoStartedAt(null);
+      setDemoDurationMs(0);
+    }
   }, []);
 
   const playTone = useCallback(
@@ -224,6 +230,8 @@ export default function App() {
     if (demoRequest !== demoRequestRef.current) return;
     setHeardLessons((current) => ({ ...current, [`${lesson.id}:${selectedVariant.id}`]: true }));
     setCoachNote(`${selectedVariant.title}: ${selectedVariant.rule}`);
+    setDemoStartedAt(performance.now());
+    setDemoDurationMs(runLength);
 
     if (pulseOn) scheduleGroove(ctx, practiceLesson.groove, beatMs, practiceLesson.bars * 4, timersRef, { includeComp: true });
 
@@ -236,6 +244,8 @@ export default function App() {
 
     const done = window.setTimeout(() => {
       setDemoPlaying(false);
+      setDemoStartedAt(null);
+      setDemoDurationMs(0);
       if (demoRequest === demoRequestRef.current) setActiveStep("ear");
     }, runLength + 120);
     timersRef.current.push(done);
@@ -520,6 +530,7 @@ export default function App() {
           selectedVariant={selectedVariant}
           isCountingIn={isCountingIn}
           countInBeat={countInBeat}
+          demoProgress={demoProgress}
           onScreenNote={(midiNote) => handleNote(createNoteEvent(midiNote, 98, "screen"))}
         />
       </section>
@@ -610,6 +621,7 @@ function PracticeSurface({
   selectedVariant,
   isCountingIn,
   countInBeat,
+  demoProgress,
   onScreenNote
 }) {
   const selectedEar = earAnswer !== null ? lesson.earCheck.options[earAnswer] : null;
@@ -680,7 +692,7 @@ function PracticeSurface({
             <strong>{practiceLesson.bpm} BPM</strong>
           </div>
           <div className={`clock ${isCountingIn ? "counting" : ""}`}>
-            {isCountingIn ? `-${countInBeat}` : formatClock(remaining)}
+            {isCountingIn ? countInBeat : formatClock(remaining)}
           </div>
           <div>
             <span>{runMode === "copy" ? "Copy target" : runMode === "drill" ? "Drill target" : "Variation target"}</span>
@@ -711,9 +723,12 @@ function PracticeSurface({
       <VirtualKeyboard lesson={practiceLesson} onNote={onScreenNote} />
 
       <div className="coach-actions">
-        <button className="primary-button" onClick={onDemo}>
+        <button className={`primary-button hear-button ${demoPlaying ? "playing" : ""}`} onClick={onDemo}>
           <Headphones size={16} />
-          {demoPlaying ? "Playing" : "Hear"}
+          <span>{demoPlaying ? "Playing" : "Hear"}</span>
+          <span className="playback-bar" aria-hidden="true">
+            <span style={{ width: `${demoProgress * 100}%` }} />
+          </span>
         </button>
         <button className="secondary-button" onClick={onCopy} disabled={!canPractice}>
           <Play size={16} />
@@ -851,9 +866,15 @@ function GrooveLane({ events, lesson, phraseNotes, notesRevealed, progressRatio,
       <div className="playhead" style={{ left: `${progressRatio * 100}%` }} />
       {isCountingIn && (
         <div className="count-in-overlay">
-          <span>Get ready</span>
+          <span>Four-beat count-in</span>
           <strong>{countInBeat}</strong>
-          <em>Move to the keys. Scoring starts after the count.</em>
+          <div className="count-in-beats" aria-hidden="true">
+            {Array.from({ length: COUNT_IN_BEATS }, (_, index) => {
+              const beat = index + 1;
+              return <span className={beat === countInBeat ? "active" : beat < countInBeat ? "done" : ""} key={beat}>{beat}</span>;
+            })}
+          </div>
+          <em>Scoring starts on the next beat 1.</em>
         </div>
       )}
       {Array.from({ length: 8 }, (_, bar) => (
