@@ -172,6 +172,7 @@ button {
 
 .midi-panel,
 .score-card,
+.mastery-card,
 .correction-card,
 .journal,
 .keyboard-wrap,
@@ -205,6 +206,7 @@ button {
 
 .midi-panel p,
 .score-card p,
+.mastery-card p,
 .correction-card p,
 .correction-card small,
 .source-card p,
@@ -914,6 +916,70 @@ button {
 
 .score-card h2 {
   margin: 4px 0;
+}
+
+.mastery-card {
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+  box-shadow: none;
+}
+
+.mastery-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.mastery-summary > div {
+  border: 1px solid rgba(247, 241, 232, 0.12);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.mastery-summary span,
+.mastery-summary em,
+.mastery-row span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.mastery-summary strong {
+  display: block;
+  margin: 3px 0;
+  font-size: 24px;
+}
+
+.mastery-list {
+  display: grid;
+  gap: 8px;
+}
+
+.mastery-row {
+  border: 1px solid rgba(247, 241, 232, 0.1);
+  border-radius: 8px;
+  padding: 9px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.028);
+}
+
+.mastery-row em {
+  color: var(--amber);
+  font-style: normal;
+  font-weight: 900;
+}
+
+.mastery-row .meter {
+  grid-column: 1 / -1;
+}
+
+.mastery-action {
+  width: 100%;
 }
 
 .correction-card {

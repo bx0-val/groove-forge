@@ -3,6 +3,7 @@ import { lessons } from "./challenges";
 import { scoreTake } from "./scoring";
 import { noteToMidi, pitchClass } from "./music";
 import { buildPhraseVariants, applyPhraseVariant } from "./phraseVariants";
+import { evaluateLessonMastery, summarizeProfessionalReadiness } from "./mastery";
 import { workoutRounds } from "../data/workoutRounds";
 import { tasteProfiles } from "../data/tasteProfiles";
 
@@ -85,6 +86,31 @@ describe("scoreTake", () => {
 
     expect(result.echoMatches).toBe(variantLesson.demoPhrase.length);
     expect(result.categories.find((category) => category.id === "echo").score).toBeGreaterThan(90);
+  });
+
+  it("recommends the weakest focused workout round from mastery evidence", () => {
+    const roundResults = {
+      [`${lesson.id}:shadow`]: { score: 88, focus: 92 },
+      [`${lesson.id}:pocket`]: { score: 44, focus: 41 },
+      [`${lesson.id}:touch`]: { score: 77, focus: 79 },
+      [`${lesson.id}:answer`]: { score: 82, focus: 80 },
+      [`${lesson.id}:twist`]: { score: 74, focus: 72 }
+    };
+
+    const mastery = evaluateLessonMastery(lesson, {}, roundResults);
+    expect(mastery.nextRound.id).toBe("pocket");
+    expect(mastery.nextDimension.id).toBe("pocket");
+    expect(mastery.readyForTaste).toBe(false);
+  });
+
+  it("summarizes professional readiness as a strict training signal", () => {
+    const roundResults = Object.fromEntries(
+      ["shadow", "pocket", "touch", "answer", "twist"].map((round) => [`${lesson.id}:${round}`, { score: 90, focus: 90 }])
+    );
+    const summary = summarizeProfessionalReadiness([lesson], {}, roundResults);
+    expect(summary.average).toBe(90);
+    expect(summary.readyLessons).toBe(1);
+    expect(summary.paidGradeSignal).toBe(true);
   });
 
   it("keeps artist-flow studies broad, explicit, and non-quote based", () => {

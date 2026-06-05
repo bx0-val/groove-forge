@@ -32,6 +32,7 @@ import {
   preloadPrimarySamples
 } from "./lib/audioEngine";
 import { lessonSteps, lessons } from "./lib/challenges";
+import { evaluateLessonMastery, summarizeProfessionalReadiness } from "./lib/mastery";
 import { createNoteEvent, midiToNote, pitchInSet } from "./lib/music";
 import { applyPhraseVariant, buildPhraseVariants } from "./lib/phraseVariants";
 import { phraseToMidiNotes, scoreTake } from "./lib/scoring";
@@ -42,9 +43,14 @@ const KEY_LABELS = ["A", "W", "S", "E", "D", "F", "T", "G", "Y", "H", "U", "J", 
 
 function loadState() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? { journal: [], progress: {} };
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? {};
+    return {
+      journal: saved.journal ?? [],
+      progress: saved.progress ?? {},
+      roundResults: saved.roundResults ?? {}
+    };
   } catch {
-    return { journal: [], progress: {} };
+    return { journal: [], progress: {}, roundResults: {} };
   }
 }
 
@@ -114,7 +120,7 @@ export default function App() {
   const [earAnswers, setEarAnswers] = useState({});
   const [selectedVariantId, setSelectedVariantId] = useState("teacher");
   const [activeRoundId, setActiveRoundId] = useState(null);
-  const [roundResults, setRoundResults] = useState({});
+  const [roundResults, setRoundResults] = useState(saved.roundResults);
   const audioRef = useRef(null);
   const timersRef = useRef([]);
   const demoRequestRef = useRef(0);
@@ -122,6 +128,8 @@ export default function App() {
   const phraseVariants = useMemo(() => buildPhraseVariants(lesson), [lesson]);
   const selectedVariant = phraseVariants.find((variant) => variant.id === selectedVariantId) ?? phraseVariants[0];
   const practiceLesson = useMemo(() => applyPhraseVariant(lesson, selectedVariant), [lesson, selectedVariant]);
+  const mastery = useMemo(() => evaluateLessonMastery(lesson, progress, roundResults), [lesson, progress, roundResults]);
+  const readiness = useMemo(() => summarizeProfessionalReadiness(lessons, progress, roundResults), [progress, roundResults]);
   const beatMs = 60000 / practiceLesson.bpm;
   const runLength = practiceLesson.bars * 4 * beatMs;
   const now = useTicker(isRunning);
@@ -180,8 +188,8 @@ export default function App() {
   const midi = useMidi(handleNote);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ journal, progress }));
-  }, [journal, progress]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ journal, progress, roundResults }));
+  }, [journal, progress, roundResults]);
 
   useEffect(() => {
     if (!isRunning || !startedAt || remaining > 0) return;
@@ -267,7 +275,12 @@ export default function App() {
         ...current,
         [`${lesson.id}:${activeRoundId}`]: {
           score: result.score,
-          focus: result.categories.find((category) => category.id === workoutRounds.find((round) => round.id === activeRoundId)?.focus)?.score ?? result.score
+          focus: result.categories.find((category) => category.id === workoutRounds.find((round) => round.id === activeRoundId)?.focus)?.score ?? result.score,
+          roundId: activeRoundId,
+          lessonId: lesson.id,
+          variantId: selectedVariant.id,
+          mode: runMode,
+          date: new Date().toISOString()
         }
       }));
     }
@@ -457,6 +470,7 @@ export default function App() {
           onWorkoutRound={startWorkoutRound}
           activeRoundId={activeRoundId}
           roundResults={roundResults}
+          mastery={mastery}
           canPractice={heardDemo}
           onEarAnswer={answerEarCheck}
           heardDemo={heardDemo}
@@ -501,6 +515,12 @@ export default function App() {
 
       <aside className="feedback-panel">
         <ScoreCard score={activeScore.score} title={lastScore ? "Run reviewed" : isRunning ? "Listening" : "Ready"} note={coachNote} />
+        <MasteryCard
+          mastery={mastery}
+          readiness={readiness}
+          onNextRep={() => startWorkoutRound(mastery.nextRound)}
+          disabled={isRunning}
+        />
         <CorrectionCard
           correction={displayCorrection}
           canCompare={Boolean(lastScore && events.length)}
@@ -794,6 +814,46 @@ function ScoreCard({ score, title, note }) {
         <h2>{title}</h2>
         <p>{note}</p>
       </div>
+    </div>
+  );
+}
+
+function MasteryCard({ mastery, readiness, onNextRep, disabled }) {
+  return (
+    <div className="mastery-card">
+      <div className="panel-heading">
+        <Gauge size={18} />
+        <h3>Mastery matrix</h3>
+      </div>
+      <div className="mastery-summary">
+        <div>
+          <span>Lesson signal</span>
+          <strong>{mastery.average}</strong>
+          <em>{mastery.level}</em>
+        </div>
+        <div>
+          <span>V4.5 bar</span>
+          <strong>{readiness.readyLessons}/{readiness.totalLessons}</strong>
+          <em>{readiness.paidGradeSignal ? "credible" : "not yet"}</em>
+        </div>
+      </div>
+      <div className="mastery-list">
+        {mastery.dimensions.map((dimension) => (
+          <div className="mastery-row" key={dimension.id}>
+            <div>
+              <strong>{dimension.label}</strong>
+              <span>{dimension.standard}</span>
+            </div>
+            <em>{dimension.score}</em>
+            <div className="meter"><span style={{ width: `${dimension.score}%` }} /></div>
+          </div>
+        ))}
+      </div>
+      <button className="primary-button mastery-action" onClick={onNextRep} disabled={disabled}>
+        <Target size={16} />
+        Next rep: {mastery.nextRound.title}
+      </button>
+      <p>{mastery.nextDimension.standard}</p>
     </div>
   );
 }

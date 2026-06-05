@@ -8,6 +8,8 @@ The latest loop adds lesson-specific grooves: each mission has a drum pocket, ba
 
 It now has a taste workout deck. Each lesson can be practiced as multiple lick forms: full teacher phrase, pocket skeleton, answer tag, delayed entrance, and touch ghost. The workout rounds force the player through Shadow, Pocket Lock, Touch Pass, Answer Tag, and Taste Twist so the same idea becomes vocabulary instead of a one-off exercise.
 
+V4.5 adds adaptive mastery. The app persists workout-round outcomes, scores the lesson across Shadow, Pocket, Touch, Answer, and Twist, and recommends the next best rep. This makes the product behave more like a focused coach: imitate, isolate, get immediate feedback, vary one detail, and return to the weakest link.
+
 ## What It Teaches
 
 - BopLand-style ii-V-I vocabulary and short reshufflable lick fragments
@@ -22,6 +24,8 @@ It now has a taste workout deck. Each lesson can be practiced as multiple lick f
 - Twist cards that turn each learned lick into concrete variation challenges
 - Lick forms for skeleton, answer, late-entry, and touch-focused practice
 - Workout rounds that track focused execution passes per lesson
+- Adaptive mastery matrix with a next-rep recommendation
+- Persistent local evidence of workout performance
 - A/B teacher-vs-player comparison
 - One-correction microdrills
 - A gated mission path that unlocks the next idea only after a real copy pass
@@ -71,6 +75,12 @@ no score before a model, no riff before a constraint, no reward without a reason
 ```
 
 Free play is not the teacher. Explanation, demonstration, copying, variation, and retained motifs are the teacher. The game layer exists to make that practice loop feel immediate and repeatable.
+
+## Professional Bar
+
+This is not yet a complete commercial product. It is now a credible prototype of a paid-grade practice loop because it has good sampled piano tone, groove-backed lessons, visible source/taste provenance, focused workout rounds, immediate feedback, adaptive next-rep selection, and persisted mastery signals.
+
+The gaps before charging real users are content depth, better authored grooves, stronger audio mixing, richer onboarding, more robust MIDI/device handling, accessibility review, and enough lesson volume to support repeated weekly use.
 
 ## Source-First Direction
 

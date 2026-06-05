@@ -44,6 +44,8 @@ The current execution layer adds lesson-specific grooves: drum patterns, bass mo
 
 The workout layer turns each lick into repeatable vocabulary. A lesson now exposes the full teacher phrase, pocket skeleton, answer tag, late entrance, and touch ghost, then runs the learner through Shadow, Pocket Lock, Touch Pass, Answer Tag, and Taste Twist. This is the core "honing machine" model: one beautiful idea, several executable forms, focused passes, and a score tied to the pass objective.
 
+The v4.5 adaptive layer persists round outcomes and turns them into a mastery matrix. Each lesson is scored across Shadow, Pocket, Touch, Answer, and Twist, then the app recommends the next best rep. This gives the player a deliberate-practice loop: imitate, isolate, receive feedback, repeat the weak skill, vary under constraint, and retrieve the idea later.
+
 Every session should run this loop:
 
 1. Start a beautiful loop.
@@ -67,7 +69,30 @@ The product should feel closer to a playable call-response instrument than a les
 - Constraints should feel like style. A limited palette should sound like a Nujabes loop room or Lateef modal drone, not like a rule sheet.
 - Taste should be explicit. Each artist-flow study should tell the player what instinct to copy, what behavior to avoid, and how to practice it.
 - The groove is part of the teacher. Timing and touch should be scored against the lesson pocket, not treated as decoration.
+- The next rep should be chosen by evidence. If pocket is weak, the app should not ask for a clever twist yet.
 - Saved riffs become curriculum. Yesterday's phrase should return in a new key, rhythm, or groove.
+
+## Professional Readiness
+
+Current answer: not fully professional-grade yet, but the v4.5 loop is credible enough to justify deeper investment.
+
+What is credible now:
+
+- Beautiful enough sampled piano to make practice rewarding.
+- Groove-backed practice instead of dry note quizzes.
+- Ear-first imitation before labels.
+- Source/taste provenance and noncommercial artist-flow studies.
+- Focused workout rounds with immediate corrective feedback.
+- Adaptive mastery matrix and next-rep recommendation.
+
+What blocks a paid product:
+
+- More authored lesson volume and progression arcs.
+- Better groove/audio mixing and instrument controls.
+- More external/open-source content ingestion.
+- Onboarding that gets a beginner to a satisfying first sound in under a minute.
+- Stronger accessibility and cross-browser MIDI testing.
+- Human review of lesson musicality from real players.
 
 ## North Star UX
 
