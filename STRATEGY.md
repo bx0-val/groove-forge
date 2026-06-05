@@ -40,6 +40,8 @@ The current v3 implementation now includes a source-aware mission catalog, visib
 
 The next strategic layer is taste literacy. Groove Forge should give the learner a usable glimpse into how a favorite artist thinks without pretending to ship official artist lessons. Current taste studies are original exercises inspired by public, high-level musical instincts around Nujabes, Chet Baker, Kanye West, Haruka Nakamura, Marcus D, Ljones, Nitsua, Cise Starr, and Uyama Hiroto. The learning target is "what to bite": entrance timing, phrase length, breath, repetition, color-note choice, contour, cadence grouping, and restraint.
 
+The current execution layer adds lesson-specific grooves: drum patterns, bass movement, and soft comping that run under teacher demos, practice runs, drills, and A/B comparison. This shifts evaluation from legal notes to taste under pressure: can the player put the lick in the pocket, keep the touch target, and vary one detail without destroying the feel?
+
 Every session should run this loop:
 
 1. Start a beautiful loop.
@@ -62,6 +64,7 @@ The product should feel closer to a playable call-response instrument than a les
 - Scores must unlock a better musical constraint, not reward button pressing.
 - Constraints should feel like style. A limited palette should sound like a Nujabes loop room or Lateef modal drone, not like a rule sheet.
 - Taste should be explicit. Each artist-flow study should tell the player what instinct to copy, what behavior to avoid, and how to practice it.
+- The groove is part of the teacher. Timing and touch should be scored against the lesson pocket, not treated as decoration.
 - Saved riffs become curriculum. Yesterday's phrase should return in a new key, rhythm, or groove.
 
 ## North Star UX
@@ -135,6 +138,7 @@ Replace generic scoring emphasis with one selected correction. The current scori
 - Wrong color: "Hold B over A minor until it stops sounding wrong."
 - No motif: "Repeat the same two-note shape twice."
 - Flat touch: "Play the first note soft, answer stronger."
+- Bad pocket: "Replay the teacher and copy the entrance timing before adding notes."
 
 ### Track 4: Ear-First Progression
 

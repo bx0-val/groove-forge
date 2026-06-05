@@ -22,7 +22,14 @@ import {
   Volume2,
   Waves
 } from "lucide-react";
-import { ensureAudioContext, playBass, playElectricPiano, playPulse, preloadPrimarySamples } from "./lib/audioEngine";
+import {
+  ensureAudioContext,
+  playBassNote,
+  playDrum,
+  playElectricPiano,
+  playPianoChord,
+  preloadPrimarySamples
+} from "./lib/audioEngine";
 import { lessonSteps, lessons } from "./lib/challenges";
 import { createNoteEvent, midiToNote, pitchInSet } from "./lib/music";
 import { phraseToMidiNotes, scoreTake } from "./lib/scoring";
@@ -58,6 +65,32 @@ function missionUnlocked(lesson, progress) {
   if (!lesson.unlock || lesson.unlock.type === "open") return true;
   const prior = progress[lesson.unlock.lessonId];
   return Boolean(prior && prior.best >= lesson.unlock.minScore && prior.copyPasses > 0);
+}
+
+function scheduleGroove(ctx, groove, beatMs, totalBeats, timersRef, options = {}) {
+  if (!ctx || !groove) return;
+  const includeComp = options.includeComp ?? true;
+  const bars = Math.ceil(totalBeats / 4);
+  const schedule = (beat, callback) => {
+    if (beat < 0 || beat > totalBeats + 0.25) return;
+    const id = window.setTimeout(callback, beat * beatMs);
+    timersRef.current.push(id);
+  };
+
+  for (let bar = 0; bar < bars; bar += 1) {
+    const offset = bar * 4;
+    groove.drums.forEach((hit) => {
+      schedule(offset + hit.beat, () => playDrum(ctx, hit.note, 0, hit.velocity));
+    });
+    groove.bass.forEach((hit) => {
+      schedule(offset + hit.beat, () => playBassNote(ctx, hit.note, 0, hit.duration * (beatMs / 1000), hit.velocity));
+    });
+    if (includeComp) {
+      groove.comp.forEach((chord) => {
+        schedule(offset + chord.beat, () => playPianoChord(ctx, chord.notes, 0, chord.duration * (beatMs / 1000), chord.velocity));
+      });
+    }
+  }
 }
 
 export default function App() {
@@ -147,18 +180,6 @@ export default function App() {
     finishRun();
   }, [isRunning, remaining, startedAt]);
 
-  useEffect(() => {
-    if (!isRunning || !pulseOn || !startedAt) return;
-    const ctx = getAudio();
-    let beat = 0;
-    const id = window.setInterval(() => {
-      playPulse(ctx, beat);
-      if (beat % 4 === 0) playBass(ctx, lesson.rootMidi, 0, 0.45);
-      beat += 1;
-    }, beatMs);
-    return () => window.clearInterval(id);
-  }, [beatMs, getAudio, isRunning, lesson.rootMidi, pulseOn, startedAt]);
-
   useEffect(() => () => clearTimers(false), [clearTimers]);
 
   async function playDemo() {
@@ -174,13 +195,7 @@ export default function App() {
     setHeardLessons((current) => ({ ...current, [lesson.id]: true }));
     setCoachNote("Listen for the shape first. Sing it once, then use Copy mode.");
 
-    for (let beat = 0; beat < lesson.bars * 4; beat += 1) {
-      const id = window.setTimeout(() => {
-        playPulse(ctx, beat);
-        if (beat % 4 === 0) playBass(ctx, lesson.rootMidi, 0, 0.55);
-      }, beat * beatMs);
-      timersRef.current.push(id);
-    }
+    if (pulseOn) scheduleGroove(ctx, lesson.groove, beatMs, lesson.bars * 4, timersRef, { includeComp: true });
 
     phraseNotes.forEach((note) => {
       const id = window.setTimeout(() => {
@@ -198,6 +213,8 @@ export default function App() {
 
   function startRun(mode, instruction = null) {
     clearTimers();
+    const ctx = getAudio();
+    if (pulseOn) scheduleGroove(ctx, lesson.groove, beatMs, lesson.bars * 4, timersRef, { includeComp: true });
     setRunMode(mode);
     setRunInstruction(instruction);
     setActiveStep(mode === "drill" ? "fix" : mode);
@@ -210,6 +227,7 @@ export default function App() {
 
   function finishRun() {
     const result = scoreTake(events, lesson, startedAt ?? performance.now(), runMode);
+    clearTimers();
     setIsRunning(false);
     setLastScore(result);
     setActiveStep("compare");
@@ -260,6 +278,7 @@ export default function App() {
     const ctx = getAudio();
     const phraseEndBeat = Math.max(...phraseNotes.map((note) => note.beat + note.duration), 8);
     const userOffsetMs = (phraseEndBeat + 1.5) * beatMs;
+    if (pulseOn) scheduleGroove(ctx, lesson.groove, beatMs, phraseEndBeat * 2 + 2, timersRef, { includeComp: true });
 
     phraseNotes.forEach((note) => {
       const id = window.setTimeout(() => {
@@ -389,6 +408,7 @@ export default function App() {
           onDemo={playDemo}
           onCopy={() => startRun("copy")}
           onVary={() => startRun("vary")}
+          onVaryPrompt={(prompt) => startRun("vary", prompt)}
           canPractice={heardDemo}
           onEarAnswer={answerEarCheck}
           heardDemo={heardDemo}
@@ -421,6 +441,7 @@ export default function App() {
           />
 
           <div className="constraint-strip">
+            <Constraint icon={<Waves size={16} />} label="Groove" value={`${lesson.groove.name} - ${lesson.groove.feel}`} />
             <Constraint icon={<Target size={16} />} label="Allowed notes" value={lesson.palette.join(" ")} />
             <Constraint icon={<ListMusic size={16} />} label="Model phrase" value={notesRevealed ? lesson.demoPhrase.map((note) => note.note.replace(/\d$/, "")).join(" - ") : "Listen first - no labels yet"} />
             <Constraint icon={<Gauge size={16} />} label="Rule" value={runInstruction ?? (runMode === "copy" ? lesson.copyGoal : runMode === "drill" ? lesson.drillGoal : lesson.varyGoal)} />
@@ -478,7 +499,20 @@ export default function App() {
   );
 }
 
-function LessonCoach({ activeStep, lesson, onDemo, onCopy, onVary, canPractice, onEarAnswer, heardDemo, earAnswer, notesRevealed, demoPlaying }) {
+function LessonCoach({
+  activeStep,
+  lesson,
+  onDemo,
+  onCopy,
+  onVary,
+  onVaryPrompt,
+  canPractice,
+  onEarAnswer,
+  heardDemo,
+  earAnswer,
+  notesRevealed,
+  demoPlaying
+}) {
   const selectedEar = earAnswer !== null ? lesson.earCheck.options[earAnswer] : null;
   const earCorrect = earAnswer === lesson.earCheck.answer;
 
@@ -530,6 +564,11 @@ function LessonCoach({ activeStep, lesson, onDemo, onCopy, onVary, canPractice, 
             <h2>{lesson.move}</h2>
           </div>
           <p>{lesson.why}</p>
+          <div className="execution-strip">
+            <span>Execution target</span>
+            <em>{lesson.groove.swing} pocket</em>
+            {lesson.taste?.touch && <em>{lesson.taste.touch}</em>}
+          </div>
           <div className="coach-actions">
             <button className="primary-button" onClick={onDemo}>
               <Headphones size={16} />
@@ -582,6 +621,17 @@ function LessonCoach({ activeStep, lesson, onDemo, onCopy, onVary, canPractice, 
           <ol>
             {lesson.steps.map((item) => <li key={item}>{item}</li>)}
           </ol>
+        </article>
+
+        <article className="remix-card">
+          <h3>Twist cards</h3>
+          <div className="remix-options">
+            {lesson.remixPrompts.map((prompt) => (
+              <button className="remix-option" disabled={!canPractice} key={prompt} onClick={() => onVaryPrompt(prompt)}>
+                {prompt}
+              </button>
+            ))}
+          </div>
         </article>
       </div>
     </section>

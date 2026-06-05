@@ -8,6 +8,11 @@ function rhythmBucket(event, start, beatMs) {
   return Math.round((event.timestamp - start) / beatMs);
 }
 
+function rhythmDistance(a, b) {
+  const diff = Math.abs(a - b);
+  return Math.min(diff, 4 - diff);
+}
+
 function expectedPitchClasses(lesson) {
   return lesson.demoPhrase.map((note) => pitchClass(note.note));
 }
@@ -46,7 +51,21 @@ function copyScore(notes, lesson, startedAt, beatMs) {
   };
 }
 
-function oneCorrection({ empty, notes, lesson, mode, echo, paletteScore, targetScore, spaceScore, motifScore, dynamicsScore, density }) {
+function pocketScore(notes, lesson, startedAt, beatMs) {
+  if (!notes.length) return 0;
+  const expected = lesson.demoPhrase;
+  const compared = notes.slice(0, Math.min(notes.length, expected.length));
+  const scores = compared.map((event, index) => {
+    const playedBeat = ((event.timestamp - startedAt) / beatMs) % 4;
+    const expectedBeat = (expected[index]?.beat ?? index) % 4;
+    return clamp(100 - rhythmDistance(playedBeat, expectedBeat) * 68);
+  });
+
+  const extraPenalty = Math.max(0, notes.length - expected.length) * 6;
+  return clamp(scores.reduce((sum, value) => sum + value, 0) / scores.length - extraPenalty);
+}
+
+function oneCorrection({ empty, notes, lesson, mode, echo, paletteScore, targetScore, spaceScore, motifScore, dynamicsScore, pocket, density }) {
   if (empty) {
     return {
       type: "listen",
@@ -95,6 +114,16 @@ function oneCorrection({ empty, notes, lesson, mode, echo, paletteScore, targetS
       action: `Your next note should be ${expected}. Replay the teacher and match the phrase up to that note.`,
       why: "Copying builds vocabulary. Remixing before copying turns into note hunting.",
       drill: `Play only up to ${expected}, then stop.`
+    };
+  }
+
+  if (pocket < 55 && notes.length > 1) {
+    return {
+      type: "pocket",
+      title: "Put the lick in the pocket",
+      action: "Replay the teacher and copy the entrance timing before worrying about new notes.",
+      why: "Taste is execution. The right notes still sound wrong when the entrance and answer miss the groove.",
+      drill: lesson.drillGoal ?? "Play only the first two notes at the teacher timing."
     };
   }
 
@@ -149,7 +178,7 @@ function oneCorrection({ empty, notes, lesson, mode, echo, paletteScore, targetS
 
 export function scoreTake(events, lesson, startedAt, mode = "vary") {
   const notes = events.filter((event) => event.type === "noteon");
-  const weights = lesson.scoringWeights;
+  const weights = { pocket: 15, ...lesson.scoringWeights };
   const totalWeight = Object.values(weights).reduce((sum, value) => sum + value, 0);
   const empty = notes.length === 0;
   const beatMs = 60000 / lesson.bpm;
@@ -175,6 +204,7 @@ export function scoreTake(events, lesson, startedAt, mode = "vary") {
   const velocitySpread = velocities.length > 1 ? Math.max(...velocities) - Math.min(...velocities) : 0;
   const dynamicsScore = clamp(Math.min(1, velocitySpread / 38) * 100);
   const echo = copyScore(notes, lesson, startedAt, beatMs);
+  const groovePocketScore = pocketScore(notes, lesson, startedAt, beatMs);
 
   const categories = [
     {
@@ -182,6 +212,16 @@ export function scoreTake(events, lesson, startedAt, mode = "vary") {
       label: mode === "copy" ? "Copy the model" : "Keep the motif",
       score: mode === "copy" ? echo.score : Math.max(echo.score, motifScore),
       detail: mode === "copy" ? echo.detail : motifScore > 55 ? "Your variation still sounds related to the model." : "Bring back part of the model phrase so this is variation, not wandering."
+    },
+    {
+      id: "pocket",
+      label: "Sit in the pocket",
+      score: groovePocketScore,
+      detail: empty
+        ? `Wait for the ${lesson.groove?.name ?? "groove"} before entering.`
+        : groovePocketScore > 70
+          ? "Your entrance and answer are sitting near the teacher rhythm."
+          : "The notes are drifting from the teacher rhythm. Copy the timing before adding anything."
     },
     {
       id: "palette",
@@ -232,6 +272,7 @@ export function scoreTake(events, lesson, startedAt, mode = "vary") {
     spaceScore,
     motifScore,
     dynamicsScore,
+    pocket: groovePocketScore,
     density
   });
 

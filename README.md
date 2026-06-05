@@ -4,6 +4,8 @@ Groove Forge is a browser-based MIDI piano trainer for feel-first improvisation.
 
 The current build adds a taste curriculum: original playable studies inspired by Nujabes, Chet Baker, Kanye West, Haruka Nakamura, Marcus D, Ljones, Nitsua, Cise Starr, and Uyama Hiroto. These are not copied songs or commercial melodies. They are bite-sized flow studies that make the learner practice the musical instinct: late entrance, breath, sample-chop repetition, soft ostinato, cinematic lift, dusty pocket, inward descent, MC cadence, and modal air.
 
+The latest loop adds lesson-specific grooves: each mission has a drum pocket, bass movement, and soft piano comping bed. Demos, copy runs, variation runs, microdrills, and A/B comparison now happen over the same pocket, so execution means playing the lick in the groove rather than just passing a note quiz.
+
 ## What It Teaches
 
 - BopLand-style ii-V-I vocabulary and short reshufflable lick fragments
@@ -13,6 +15,9 @@ The current build adds a taste curriculum: original playable studies inspired by
 - Modal-cell repetition and restraint
 - Artist-flow taste profiles: what to bite, what to avoid, and how to practice it
 - Original noncommercial style studies that teach public, high-level artist instincts without embedding copyrighted recordings
+- Groove-backed practice with kick/snare/hat patterns, bass lines, and comp chords per lesson
+- Pocket scoring that checks whether the lick sits near the teacher rhythm
+- Twist cards that turn each learned lick into concrete variation challenges
 - A/B teacher-vs-player comparison
 - One-correction microdrills
 - A gated mission path that unlocks the next idea only after a real copy pass

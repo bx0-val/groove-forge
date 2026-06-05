@@ -1,4 +1,5 @@
 import { DrumMachine, Smolken, SplendidGrandPiano } from "smplr";
+import { noteToMidi } from "./music";
 
 const instrumentsByContext = new WeakMap();
 
@@ -151,22 +152,54 @@ export function playElectricPiano(ctx, midi, velocity = 90, delay = 0, duration 
   playFallbackElectricPiano(ctx, midi, velocity, delay, duration);
 }
 
-function playFallbackPulse(ctx, beatIndex = 0, delay = 0) {
+function playNoiseHit(ctx, when, duration, frequency, velocity) {
+  const bufferSize = Math.max(1, Math.floor(ctx.sampleRate * duration));
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let index = 0; index < bufferSize; index += 1) {
+    data[index] = (Math.random() * 2 - 1) * (1 - index / bufferSize);
+  }
+
+  const source = ctx.createBufferSource();
+  const filter = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+  filter.type = "bandpass";
+  filter.frequency.setValueAtTime(frequency, when);
+  filter.Q.setValueAtTime(0.9, when);
+  gain.gain.setValueAtTime(Math.max(0.01, velocity / 460), when);
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+  source.buffer = buffer;
+  source.connect(filter).connect(gain).connect(ctx.destination);
+  source.start(when);
+  source.stop(when + duration);
+}
+
+function playFallbackDrum(ctx, note = "hat", delay = 0, velocity = 44) {
   if (!ctx) return;
   const when = ctx.currentTime + delay;
+  if (note === "snare") {
+    playNoiseHit(ctx, when, 0.16, 1600, velocity);
+    return;
+  }
+  if (note === "hat") {
+    playNoiseHit(ctx, when, 0.065, 7800, velocity * 0.7);
+    return;
+  }
+
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
   osc.type = "sine";
-  osc.frequency.setValueAtTime(beatIndex % 4 === 0 ? 880 : 660, when);
+  osc.frequency.setValueAtTime(110, when);
+  osc.frequency.exponentialRampToValueAtTime(52, when + 0.09);
   gain.gain.setValueAtTime(0.0001, when);
-  gain.gain.exponentialRampToValueAtTime(0.08, when + 0.006);
-  gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.09);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.03, velocity / 390), when + 0.006);
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.16);
   osc.connect(gain).connect(ctx.destination);
   osc.start(when);
-  osc.stop(when + 0.11);
+  osc.stop(when + 0.18);
 }
 
-export function playPulse(ctx, beatIndex = 0, delay = 0) {
+export function playDrum(ctx, note = "hat", delay = 0, velocity = 44) {
   if (!ctx) return;
   const state = warmSampleInstruments(ctx);
   const when = ctx.currentTime + delay;
@@ -174,19 +207,28 @@ export function playPulse(ctx, beatIndex = 0, delay = 0) {
   if (state?.drums && state.drumsReady) {
     try {
       state.drums.start({
-        note: beatIndex % 4 === 0 ? "kick" : "hat",
+        note,
         time: when,
-        velocity: beatIndex % 4 === 0 ? 58 : 34,
-        duration: 0.12
+        velocity,
+        duration: note === "hat" ? 0.08 : 0.16
       });
       return;
     } catch {
-      playFallbackPulse(ctx, beatIndex, delay);
+      playFallbackDrum(ctx, note, delay, velocity);
       return;
     }
   }
 
-  playFallbackPulse(ctx, beatIndex, delay);
+  playFallbackDrum(ctx, note, delay, velocity);
+}
+
+function playFallbackPulse(ctx, beatIndex = 0, delay = 0) {
+  playFallbackDrum(ctx, beatIndex % 4 === 0 ? "kick" : "hat", delay, beatIndex % 4 === 0 ? 58 : 34);
+}
+
+export function playPulse(ctx, beatIndex = 0, delay = 0) {
+  if (!ctx) return;
+  playDrum(ctx, beatIndex % 4 === 0 ? "kick" : "hat", delay, beatIndex % 4 === 0 ? 58 : 34);
 }
 
 function playFallbackBass(ctx, midi, delay = 0, duration = 0.7) {
@@ -220,4 +262,31 @@ export function playBass(ctx, midi, delay = 0, duration = 0.7) {
   }
 
   playFallbackBass(ctx, midi, delay, duration);
+}
+
+export function playBassNote(ctx, note, delay = 0, duration = 0.7, velocity = 72) {
+  const midi = typeof note === "number" ? note : noteToMidi(note);
+  if (midi === null) return;
+  if (!ctx) return;
+  const state = warmSampleInstruments(ctx);
+  const when = ctx.currentTime + delay;
+
+  if (state?.bass && state.bassReady) {
+    state.bass.start({
+      note: midi,
+      velocity,
+      time: when,
+      duration
+    });
+    return;
+  }
+
+  playFallbackBass(ctx, midi, delay, duration);
+}
+
+export function playPianoChord(ctx, notes, delay = 0, duration = 1.2, velocity = 34) {
+  notes.forEach((note, index) => {
+    const midi = typeof note === "number" ? note : noteToMidi(note);
+    if (midi !== null) playElectricPiano(ctx, midi, velocity - index * 2, delay + index * 0.01, duration);
+  });
 }

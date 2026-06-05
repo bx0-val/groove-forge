@@ -1,4 +1,5 @@
 import { sourceFragments } from "../data/sourceFragments";
+import { getGroovePattern } from "../data/groovePatterns";
 import { getTasteProfile } from "../data/tasteProfiles";
 
 function sourceFrom(fragment) {
@@ -22,6 +23,10 @@ function tasteFrom(id) {
   return profile;
 }
 
+function grooveFrom(id) {
+  return getGroovePattern(id);
+}
+
 export const lessonSteps = [
   { id: "source", label: "Source", verb: "Know what you are stealing" },
   { id: "demo", label: "Hear", verb: "Listen before labels" },
@@ -39,6 +44,7 @@ export const lessons = [
     subtitle: "Steal the outline, not random notes",
     world: "Ryo / bebop entry",
     taste: tasteFrom("nujabes"),
+    groove: grooveFrom("swingBrush"),
     level: "V3.0 Mission 1",
     unlock: { type: "open", label: "Start here" },
     skill: "Resolution vocabulary",
@@ -91,6 +97,7 @@ export const lessons = [
     subtitle: "Make harmony audible with two-note gravity",
     world: "Bill Evans color",
     taste: tasteFrom("haruka-nakamura"),
+    groove: grooveFrom("swingBrush"),
     level: "V3.0 Mission 2",
     unlock: { type: "previous", lessonId: "bopland-ii-v-i", minScore: 75, label: "Pass ii-V-I Doorway" },
     skill: "Guide-tone hearing",
@@ -143,6 +150,7 @@ export const lessons = [
     subtitle: "A phrase needs lungs",
     world: "Chet Baker restraint",
     taste: tasteFrom("chet-baker"),
+    groove: grooveFrom("breathBallad"),
     level: "V3.0 Mission 3",
     unlock: { type: "previous", lessonId: "guide-tone-thread", minScore: 75, label: "Pass Guide-Tone Thread" },
     skill: "Space and response",
@@ -195,6 +203,7 @@ export const lessons = [
     subtitle: "Make the color note feel chosen",
     world: "Bill Evans / lofi color",
     taste: tasteFrom("nitsua"),
+    groove: grooveFrom("inwardLoop"),
     level: "V3.0 Mission 4",
     unlock: { type: "previous", lessonId: "chet-breath", minScore: 75, label: "Pass Breath Before Notes" },
     skill: "Color-tone landing",
@@ -247,6 +256,7 @@ export const lessons = [
     subtitle: "Stay long enough to hear the mode",
     world: "Yusuf Lateef restraint",
     taste: tasteFrom("uyama-hiroto"),
+    groove: grooveFrom("modalAir"),
     level: "V3.0 Mission 5",
     unlock: { type: "previous", lessonId: "evans-minor-9", minScore: 75, label: "Pass Minor 9 Glow" },
     skill: "Modal repetition",
@@ -299,6 +309,7 @@ export const lessons = [
     subtitle: "Make I-vi-ii-V feel like a loop",
     world: "Nujabes / Ryo loop room",
     taste: tasteFrom("nujabes"),
+    groove: grooveFrom("jazzhopRoom"),
     level: "V3.0 Mission 6",
     unlock: { type: "previous", lessonId: "lateef-modal-cell", minScore: 75, label: "Pass Modal Cell Room" },
     skill: "Progression memory",
@@ -351,6 +362,7 @@ export const lessons = [
     subtitle: "Enter late, answer warm, leave space",
     world: "Nujabes taste study",
     taste: tasteFrom("nujabes"),
+    groove: grooveFrom("jazzhopRoom"),
     level: "Taste Study 1",
     unlock: { type: "open", label: "Taste study" },
     skill: "Jazz-hop restraint",
@@ -403,6 +415,7 @@ export const lessons = [
     subtitle: "Repeat the cell until it becomes the hook",
     world: "Kanye taste study",
     taste: tasteFrom("kanye"),
+    groove: grooveFrom("soulChop"),
     level: "Taste Study 2",
     unlock: { type: "open", label: "Taste study" },
     skill: "Repetition as arrangement",
@@ -455,6 +468,7 @@ export const lessons = [
     subtitle: "Repeat softer until the color rings",
     world: "Haruka Nakamura taste study",
     taste: tasteFrom("haruka-nakamura"),
+    groove: grooveFrom("memoryHaze"),
     level: "Taste Study 3",
     unlock: { type: "open", label: "Taste study" },
     skill: "Soft repetition",
@@ -507,6 +521,7 @@ export const lessons = [
     subtitle: "Rise once, then resolve plainly",
     world: "Marcus D taste study",
     taste: tasteFrom("marcus-d"),
+    groove: grooveFrom("cinematicLift"),
     level: "Taste Study 4",
     unlock: { type: "open", label: "Taste study" },
     skill: "Arpeggio lift",
@@ -559,6 +574,7 @@ export const lessons = [
     subtitle: "Play late on purpose",
     world: "Ljones taste study",
     taste: tasteFrom("ljones"),
+    groove: grooveFrom("dustPocket"),
     level: "Taste Study 5",
     unlock: { type: "open", label: "Taste study" },
     skill: "Behind-the-beat pocket",
@@ -611,6 +627,7 @@ export const lessons = [
     subtitle: "Descend, pause, leave it unresolved",
     world: "Nitsua taste study",
     taste: tasteFrom("nitsua"),
+    groove: grooveFrom("inwardLoop"),
     level: "Taste Study 6",
     unlock: { type: "open", label: "Taste study" },
     skill: "Nostalgic contour",
@@ -663,6 +680,7 @@ export const lessons = [
     subtitle: "Make the piano line rap without words",
     world: "Cise Starr taste study",
     taste: tasteFrom("cise-starr"),
+    groove: grooveFrom("cadencePocket"),
     level: "Taste Study 7",
     unlock: { type: "open", label: "Taste study" },
     skill: "Speech rhythm",
@@ -715,6 +733,7 @@ export const lessons = [
     subtitle: "Leap to color, breathe, descend calmly",
     world: "Uyama Hiroto taste study",
     taste: tasteFrom("uyama-hiroto"),
+    groove: grooveFrom("modalAir"),
     level: "Taste Study 8",
     unlock: { type: "open", label: "Taste study" },
     skill: "Modal color and space",

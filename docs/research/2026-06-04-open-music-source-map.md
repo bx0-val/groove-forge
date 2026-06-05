@@ -185,6 +185,17 @@ Notes:
 - The current catalog includes Nujabes, Chet Baker, Kanye West, Haruka Nakamura, Marcus D, Ljones, Nitsua, Cise Starr, and Uyama Hiroto inspired profiles.
 - Best use: pair each profile with a small original phrase, an ear question, and a single corrective drill.
 
+## Groove-Backed Execution
+
+Use: make every lick live inside a musical pocket.
+
+Notes:
+
+- The current app uses in-repo groove pattern data: drum hits, bass notes, and soft comp chords.
+- The same groove schedules under Hear, Copy, Vary, Microdrill, and A/B comparison so the learner practices execution, not isolated notes.
+- Pocket scoring compares the player's entrance and answer rhythm to the teacher phrase.
+- Best use: keep expanding these groove beds with open MIDI/drum-pattern sources, then adapt them into short loops with visible provenance.
+
 ## Theory/Transformation Libraries
 
 ### Tonal

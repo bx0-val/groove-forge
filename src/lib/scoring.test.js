@@ -30,6 +30,17 @@ describe("scoreTake", () => {
       expect(item.source.fragmentId).toBeTruthy();
       expect(item.source.material.length).toBeGreaterThan(0);
       expect(item.unlock).toBeTruthy();
+      expect(item.groove).toMatchObject({
+        name: expect.any(String),
+        feel: expect.any(String),
+        drums: expect.any(Array),
+        bass: expect.any(Array),
+        comp: expect.any(Array)
+      });
+      expect(item.groove.drums.length).toBeGreaterThan(0);
+      expect(item.groove.bass.length).toBeGreaterThan(0);
+      expect(item.groove.comp.length).toBeGreaterThan(0);
+      expect(item.remixPrompts.length).toBeGreaterThanOrEqual(3);
       expect(item.taste).toMatchObject({
         artist: expect.any(String),
         lens: expect.any(String),
@@ -104,6 +115,7 @@ describe("scoreTake", () => {
 
     expect(result.echoMatches).toBe(lesson.demoPhrase.length);
     expect(result.categories.find((category) => category.id === "echo").score).toBeGreaterThan(90);
+    expect(result.categories.find((category) => category.id === "pocket").score).toBeGreaterThan(90);
     expect(result.correction.type).toBe("success");
     expect(result.nextStep).toBe(lesson.varyGoal);
   });
