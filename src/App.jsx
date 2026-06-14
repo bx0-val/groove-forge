@@ -560,6 +560,7 @@ export default function App() {
         <MasteryCard
           mastery={mastery}
           readiness={readiness}
+          lessonProgress={progress[lesson.id]}
           onNextRep={() => startWorkoutRound(mastery.nextRound)}
           disabled={isRunning}
         />
@@ -669,79 +670,87 @@ function PracticeSurface({
 
   return (
     <section className="practice-surface">
-      <div className="practice-head">
-        <div className="lesson-intent">
-          <div className="source-kicker">{lesson.world}</div>
+      <section className={`mission-cockpit ${repState} ${activeRoundId === "recall" ? "cold-recall" : ""}`} aria-live="polite" aria-label="Practice cockpit">
+        <div className="mission-copy">
+          <div className="cockpit-kicker">
+            <span>{lesson.world}</span>
+            <em>{lesson.level}</em>
+          </div>
           <h2>{activeRound ? activeRound.title : practiceLesson.activeVariant?.title ?? "Teacher lick"}</h2>
-          <p>{mainInstruction}</p>
+          <p className="mission-brief">{mainInstruction}</p>
+          <div className="mission-contract">
+            <span>Today&apos;s rep contract</span>
+            <strong>{repContract.title}</strong>
+            <p>{repContract.body}</p>
+          </div>
         </div>
 
-        <div className="listen-card-lite">
-          <div className="stepper compact" aria-label="Lesson steps">
-            {lessonSteps.map((step) => (
-              <div className={`step-pill ${activeStep === step.id ? "active" : ""}`} key={step.id} title={step.verb}>
-                <span>{step.label}</span>
-              </div>
-            ))}
-          </div>
-          <div className="ear-check-inline">
-            <strong>Ear check</strong>
-            <p>{heardDemo ? lesson.earCheck.question : "Hear the phrase before choosing."}</p>
-            <div className="ear-options">
-              {lesson.earCheck.options.map((option, index) => (
-                <button
-                  className={`ear-option ${earAnswer === index ? "selected" : ""} ${earAnswer === index && earCorrect ? "correct" : ""}`}
-                  disabled={!heardDemo}
-                  key={option}
-                  onClick={() => onEarAnswer(index)}
-                  title="Ear checks unlock labels by making you listen first."
-                >
-                  {option}
-                </button>
-              ))}
+        <div className="loop-console" aria-label="Learning loop">
+          {[
+            ["Listen", "encode the sound", "listen"],
+            ["Retrieve", activeRoundId === "recall" ? "no Hear crutch" : "sing/finger from memory", "recall"],
+            ["Play", isCountingIn ? `count-in ${countInBeat}` : "commit the take", "playing"],
+            ["Fix", weakestCategory?.label ?? "one miss", "fix"]
+          ].map(([label, detail, state], index) => (
+            <div className={`loop-step ${repState === state ? "active" : ""}`} key={label}>
+              <span>{index + 1}</span>
+              <strong>{label}</strong>
+              <em>{detail}</em>
             </div>
-            {selectedEar && <small>{earCorrect ? lesson.earCheck.success : lesson.earCheck.miss}</small>}
-          </div>
-        </div>
-      </div>
-
-
-      <section className={`rep-contract ${repState}`} aria-live="polite" aria-label="Rep contract">
-        <div className="rep-contract-copy">
-          <span>{repContract.label}</span>
-          <h3>{repContract.title}</h3>
-          <p>{repContract.body}</p>
-        </div>
-        <div className="rep-loop" aria-label="Learning loop">
-          {['hear', 'retrieve', 'play', 'fix'].map((step) => (
-            <span className={
-              (step === 'hear' && repState === 'listen') ||
-              (step === 'retrieve' && repState === 'recall') ||
-              (step === 'play' && repState === 'playing') ||
-              (step === 'fix' && repState === 'fix') ? 'active' : ''
-            } key={step}>{step}</span>
           ))}
         </div>
-        {lastScore && (
-          <div className="rep-fix-panel">
-            <div>
-              <span>Score</span>
-              <strong>{lastScore.score}</strong>
-            </div>
-            <div>
-              <span>Weakest</span>
-              <strong>{weakestCategory?.label ?? 'Next rep'}</strong>
-            </div>
-            <button className="secondary-button" onClick={onCompare} disabled={!events.length}>
-              <Headphones size={16} />
-              Replay A/B
-            </button>
-            <button className="primary-button" onClick={onMicrodrill}>
-              <Target size={16} />
-              Microdrill
-            </button>
+
+        <div className="action-stack">
+          <div className="readiness-card">
+            <span>Readiness cue</span>
+            <strong>{lastScore ? `${lastScore.score} scored` : isCountingIn ? "Count-in armed" : startedAt ? "Take running" : heardDemo ? "Ready to retrieve" : "Listen first"}</strong>
+            <em>{activeRoundId === "recall" ? "Cold Recall: playback locked" : mastery.nextRound.title}</em>
           </div>
-        )}
+          <button
+            className="primary-button hero-cta"
+            onClick={repState === "listen" ? onDemo : repState === "fix" ? onMicrodrill : onCopy}
+            disabled={(repState === "listen" && activeRoundId === "recall") || (repState !== "listen" && !canPractice && repState !== "fix")}
+            title={repState === "listen" && activeRoundId === "recall" ? "Cold Recall disables demo playback until after the take." : undefined}
+          >
+            {repState === "listen" ? <Headphones size={20} /> : repState === "fix" ? <Target size={20} /> : <Play size={20} />}
+            {repState === "listen" ? (demoPlaying ? "Playing" : "Hear the model") : repState === "fix" ? "Microdrill the miss" : "Start Copy take"}
+          </button>
+          <div className="cockpit-actions">
+            <button className="secondary-button" onClick={onCopy} disabled={!canPractice}>
+              <Play size={16} /> Copy
+            </button>
+            <button className="secondary-button" onClick={onNextRep}>
+              <Target size={16} /> Next rep
+            </button>
+            <button className="secondary-button" onClick={onVary} disabled={!canPractice}>
+              <Sparkles size={16} /> Twist
+            </button>
+            {lastScore && (
+              <button className="secondary-button" onClick={onCompare} disabled={!events.length}>
+                <Headphones size={16} /> A/B
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="ear-check-inline cockpit-ear">
+          <strong>Ear check</strong>
+          <p>{heardDemo ? lesson.earCheck.question : "Hear the phrase before choosing."}</p>
+          <div className="ear-options">
+            {lesson.earCheck.options.map((option, index) => (
+              <button
+                className={`ear-option ${earAnswer === index ? "selected" : ""} ${earAnswer === index && earCorrect ? "correct" : ""}`}
+                disabled={!heardDemo}
+                key={option}
+                onClick={() => onEarAnswer(index)}
+                title="Ear checks unlock labels by making you listen first."
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+          {selectedEar && <small>{earCorrect ? lesson.earCheck.success : lesson.earCheck.miss}</small>}
+        </div>
       </section>
 
       <div className="practice-meta" aria-label="Practice targets">
@@ -800,25 +809,6 @@ function PracticeSurface({
       </div>
 
       <VirtualKeyboard lesson={practiceLesson} onNote={onScreenNote} />
-
-      <div className="coach-actions">
-        <button className="primary-button" onClick={onDemo} disabled={activeRoundId === "recall"} title={activeRoundId === "recall" ? "Cold Recall disables demo playback until after the take." : undefined}>
-          <Headphones size={16} />
-          {demoPlaying ? "Playing" : "Hear"}
-        </button>
-        <button className="secondary-button" onClick={onCopy} disabled={!canPractice}>
-          <Play size={16} />
-          Copy
-        </button>
-        <button className="secondary-button" onClick={onNextRep}>
-          <Target size={16} />
-          Next rep
-        </button>
-        <button className="secondary-button" onClick={onVary} disabled={!canPractice}>
-          <Sparkles size={16} />
-          Twist
-        </button>
-      </div>
 
       <div className="guidance-dock">
         <GuideDrawer title="Choose Lick Form" icon={<Disc3 size={16} />} tip="Switch forms when you want to isolate a smaller version of the same idea.">
@@ -1053,7 +1043,7 @@ function ScoreCard({ score, title, note }) {
   );
 }
 
-function MasteryCard({ mastery, readiness, onNextRep, disabled }) {
+function MasteryCard({ mastery, readiness, lessonProgress, onNextRep, disabled }) {
   return (
     <div className="mastery-card">
       <div className="panel-heading">
@@ -1073,16 +1063,19 @@ function MasteryCard({ mastery, readiness, onNextRep, disabled }) {
         </div>
       </div>
       <div className="mastery-list">
-        {mastery.dimensions.map((dimension) => (
-          <div className="mastery-row" key={dimension.id}>
+        {mastery.dimensions.map((dimension) => {
+          const recallLocked = dimension.id === "recall" && !(lessonProgress?.runs > 0);
+          return (
+          <div className={`mastery-row ${recallLocked ? "locked" : ""}`} key={dimension.id}>
             <div>
               <strong>{dimension.label}</strong>
               <span>{dimension.standard}</span>
             </div>
-            <em>{dimension.score}</em>
-            <div className="meter"><span style={{ width: `${dimension.score}%` }} /></div>
+            <em>{recallLocked ? "LOCK" : dimension.score}</em>
+            <div className="meter"><span style={{ width: `${recallLocked ? 0 : dimension.score}%` }} /></div>
           </div>
-        ))}
+          );
+        })}
       </div>
       <button className="primary-button mastery-action" onClick={onNextRep} disabled={disabled}>
         <Target size={16} />
