@@ -480,10 +480,10 @@ export default function App() {
             <p>{lesson.level} - {lesson.subtitle}</p>
           </div>
           <div className="topbar-actions">
-            <button className={`icon-toggle ${focusMode ? "on" : ""}`} onClick={() => setFocusMode((value) => !value)} title="Toggle focus mode">
+            <button className={`icon-toggle ${focusMode ? "on" : ""}`} onClick={() => setFocusMode((value) => !value)} title="Toggle focus mode" aria-label="Toggle focus mode" aria-pressed={focusMode}>
               <EyeOff size={18} />
             </button>
-            <button className={`icon-toggle ${pulseOn ? "on" : ""}`} onClick={() => setPulseOn((value) => !value)} title="Toggle pulse">
+            <button className={`icon-toggle ${pulseOn ? "on" : ""}`} onClick={() => setPulseOn((value) => !value)} title="Toggle pulse" aria-label="Toggle pulse" aria-pressed={pulseOn}>
               <Volume2 size={18} />
             </button>
             <button className="secondary-button" onClick={resetRun}>
@@ -1092,6 +1092,7 @@ function VirtualKeyboard({ lesson, onNote }) {
               key={midi}
               className={`piano-key ${black ? "black" : "white"} ${inPalette ? "allowed" : ""} ${isTarget ? "target" : ""}`}
               onClick={() => onNote(midi)}
+              aria-label={`Play ${note}`}
             >
               <span>{pitch}</span>
               <small>{KEY_LABELS[index]}</small>

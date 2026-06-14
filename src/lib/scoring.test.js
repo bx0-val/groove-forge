@@ -50,6 +50,11 @@ describe("scoreTake", () => {
       variants.forEach((variant) => {
         expect(variant.phrase.length).toBeGreaterThan(0);
         expect(variant.rule).toBeTruthy();
+        variant.phrase.forEach((note) => {
+          expect(noteToMidi(note.note)).not.toBeNull();
+          expect(note.beat).toBeGreaterThanOrEqual(0);
+          expect(note.beat + note.duration).toBeLessThanOrEqual(item.bars * 4);
+        });
       });
       expect(item.taste).toMatchObject({
         artist: expect.any(String),
