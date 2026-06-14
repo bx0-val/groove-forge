@@ -75,6 +75,11 @@ describe("scoreTake", () => {
       expect(round.instruction(lesson)).toBeTruthy();
       expect(["copy", "vary", "drill"]).toContain(round.mode);
       expect(["echo", "pocket", "dynamics", "target", "motif"]).toContain(round.focus);
+      if (round.id === "recall") {
+        expect(round.requiresPriorRun).toBe(true);
+        expect(round.badge).toBe("Memory");
+        expect(round.win.toLowerCase()).toContain("without immediate playback");
+      }
     });
   });
 
@@ -93,9 +98,36 @@ describe("scoreTake", () => {
     expect(result.categories.find((category) => category.id === "echo").score).toBeGreaterThan(90);
   });
 
+  it("does not recommend recall from generic best progress alone", () => {
+    const mastery = evaluateLessonMastery(lesson, { [lesson.id]: { best: 88, runs: 1 } }, {});
+
+    expect(mastery.dimensions.map((dimension) => dimension.id)).toContain("recall");
+    expect(mastery.nextRound.id).toBe("pocket");
+    expect(mastery.nextDimension.id).toBe("pocket");
+  });
+
+  it("recommends recall only after explicit strong shadow evidence", () => {
+    const mastery = evaluateLessonMastery(lesson, {}, { [`${lesson.id}:shadow`]: { score: 88, focus: 92 } });
+
+    expect(mastery.nextRound.id).toBe("recall");
+    expect(mastery.nextDimension.id).toBe("recall");
+  });
+
+  it("keeps weak recall as the bottleneck after strong shadow evidence", () => {
+    const mastery = evaluateLessonMastery(lesson, {}, {
+      [`${lesson.id}:shadow`]: { score: 88, focus: 92 },
+      [`${lesson.id}:recall`]: { score: 64, focus: 61 },
+      [`${lesson.id}:pocket`]: { score: 80, focus: 80 }
+    });
+
+    expect(mastery.nextRound.id).toBe("recall");
+    expect(mastery.nextDimension.id).toBe("recall");
+  });
+
   it("recommends the weakest focused workout round from mastery evidence", () => {
     const roundResults = {
       [`${lesson.id}:shadow`]: { score: 88, focus: 92 },
+      [`${lesson.id}:recall`]: { score: 86, focus: 84 },
       [`${lesson.id}:pocket`]: { score: 44, focus: 41 },
       [`${lesson.id}:touch`]: { score: 77, focus: 79 },
       [`${lesson.id}:answer`]: { score: 82, focus: 80 },
@@ -110,7 +142,7 @@ describe("scoreTake", () => {
 
   it("summarizes professional readiness as a strict training signal", () => {
     const roundResults = Object.fromEntries(
-      ["shadow", "pocket", "touch", "answer", "twist"].map((round) => [`${lesson.id}:${round}`, { score: 90, focus: 90 }])
+      ["shadow", "recall", "pocket", "touch", "answer", "twist"].map((round) => [`${lesson.id}:${round}`, { score: 90, focus: 90 }])
     );
     const summary = summarizeProfessionalReadiness([lesson], {}, roundResults);
     expect(summary.average).toBe(90);

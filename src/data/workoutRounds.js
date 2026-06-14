@@ -10,6 +10,17 @@ export const workoutRounds = [
     win: "Full phrase in your hands."
   },
   {
+    id: "recall",
+    title: "Cold Recall",
+    badge: "Memory",
+    mode: "copy",
+    variantId: "teacher",
+    focus: "echo",
+    requiresPriorRun: true,
+    instruction: () => "Retrieve the phrase from memory before pressing Hear again. No playback crutch until you commit.",
+    win: "Produce the phrase without immediate playback."
+  },
+  {
     id: "pocket",
     title: "Pocket Lock",
     badge: "Timing",

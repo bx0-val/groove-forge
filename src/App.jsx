@@ -222,6 +222,10 @@ export default function App() {
   useEffect(() => () => clearTimers(false), [clearTimers]);
 
   async function playDemo() {
+    if (activeRoundId === "recall") {
+      setCoachNote("Cold Recall contract: no Hear button, no demo. Retrieve first, then score the take.");
+      return;
+    }
     clearTimers();
     const demoRequest = demoRequestRef.current + 1;
     demoRequestRef.current = demoRequest;
@@ -286,6 +290,10 @@ export default function App() {
   }
 
   function startWorkoutRound(round) {
+    if (round.requiresPriorRun && !(progress[lesson.id]?.runs > 0)) {
+      setCoachNote("Cold Recall unlocks after one real run. Build the trace first, then retrieve it.");
+      return;
+    }
     const nextVariant = phraseVariants.find((variant) => variant.id === round.variantId) ?? phraseVariants[0];
     const nextLesson = applyPhraseVariant(lesson, nextVariant);
     setSelectedVariantId(nextVariant.id);
@@ -519,6 +527,7 @@ export default function App() {
           activeRoundId={activeRoundId}
           roundResults={roundResults}
           mastery={mastery}
+          lessonProgress={progress[lesson.id]}
           onNextRep={() => startWorkoutRound(mastery.nextRound)}
           canPractice={heardDemo}
           onEarAnswer={answerEarCheck}
@@ -539,6 +548,9 @@ export default function App() {
           countInBeat={countInBeat}
           countInProgress={countInProgress}
           demoProgress={demoProgress}
+          lastScore={lastScore}
+          onCompare={playComparison}
+          onMicrodrill={startMicrodrill}
           onScreenNote={(midiNote) => handleNote(createNoteEvent(midiNote, 98, "screen"))}
         />
       </section>
@@ -611,6 +623,8 @@ function PracticeSurface({
   onWorkoutRound,
   activeRoundId,
   roundResults,
+  mastery,
+  lessonProgress,
   onNextRep,
   canPractice,
   onEarAnswer,
@@ -631,6 +645,9 @@ function PracticeSurface({
   countInBeat,
   countInProgress,
   demoProgress,
+  lastScore,
+  onCompare,
+  onMicrodrill,
   onScreenNote
 }) {
   const selectedEar = earAnswer !== null ? lesson.earCheck.options[earAnswer] : null;
@@ -638,6 +655,17 @@ function PracticeSurface({
   const activeRound = workoutRounds.find((round) => round.id === activeRoundId);
   const mainInstruction = activeRound?.instruction(practiceLesson) ?? practiceLesson.activeVariant?.rule ?? lesson.stealThis;
   const phraseLabel = notesRevealed ? practiceLesson.demoPhrase.map((note) => note.note.replace(/\d$/, "")).join(" - ") : "Listen first";
+  const repState = lastScore ? "fix" : demoPlaying || isCountingIn || startedAt ? "playing" : heardDemo ? "recall" : "listen";
+  const weakestCategory = lastScore?.categories?.length ? [...lastScore.categories].sort((a, b) => a.score - b.score)[0] : null;
+  const recallContract = activeRoundId === "recall"
+    ? { label: "Recall", title: "Cold Recall is live: no Hear, no demo.", body: "Retrieve first, then score the take. Playback comes after the attempt, not before it." }
+    : { label: "Recall", title: "Retrieve it before your hands get help.", body: "Sing or finger it from memory, then press Copy." };
+  const repContract = {
+    listen: { label: "Listen", title: "Hear the source like a hook, not a diagram.", body: "Press Hear. Your first job is encoding the sound before labels make it feel easier than it is." },
+    recall: recallContract,
+    playing: { label: "Play", title: isCountingIn ? `Count-in ${countInBeat}: enter on the next 1.` : "Transport moving. Commit to the take.", body: runInstruction ?? "Stay with the groove. No stopping to negotiate with the mistake." },
+    fix: { label: "Fix", title: "Fix one thing, then rep again.", body: weakestCategory ? `${weakestCategory.label}: ${weakestCategory.detail}` : "Replay the model against your take, then microdrill the smallest miss." }
+  }[repState];
 
   return (
     <section className="practice-surface">
@@ -676,6 +704,45 @@ function PracticeSurface({
           </div>
         </div>
       </div>
+
+
+      <section className={`rep-contract ${repState}`} aria-live="polite" aria-label="Rep contract">
+        <div className="rep-contract-copy">
+          <span>{repContract.label}</span>
+          <h3>{repContract.title}</h3>
+          <p>{repContract.body}</p>
+        </div>
+        <div className="rep-loop" aria-label="Learning loop">
+          {['hear', 'retrieve', 'play', 'fix'].map((step) => (
+            <span className={
+              (step === 'hear' && repState === 'listen') ||
+              (step === 'retrieve' && repState === 'recall') ||
+              (step === 'play' && repState === 'playing') ||
+              (step === 'fix' && repState === 'fix') ? 'active' : ''
+            } key={step}>{step}</span>
+          ))}
+        </div>
+        {lastScore && (
+          <div className="rep-fix-panel">
+            <div>
+              <span>Score</span>
+              <strong>{lastScore.score}</strong>
+            </div>
+            <div>
+              <span>Weakest</span>
+              <strong>{weakestCategory?.label ?? 'Next rep'}</strong>
+            </div>
+            <button className="secondary-button" onClick={onCompare} disabled={!events.length}>
+              <Headphones size={16} />
+              Replay A/B
+            </button>
+            <button className="primary-button" onClick={onMicrodrill}>
+              <Target size={16} />
+              Microdrill
+            </button>
+          </div>
+        )}
+      </section>
 
       <div className="practice-meta" aria-label="Practice targets">
         <Tooltip label="Form" tip="The current version of the lick you are practicing.">
@@ -735,7 +802,7 @@ function PracticeSurface({
       <VirtualKeyboard lesson={practiceLesson} onNote={onScreenNote} />
 
       <div className="coach-actions">
-        <button className="primary-button" onClick={onDemo}>
+        <button className="primary-button" onClick={onDemo} disabled={activeRoundId === "recall"} title={activeRoundId === "recall" ? "Cold Recall disables demo playback until after the take." : undefined}>
           <Headphones size={16} />
           {demoPlaying ? "Playing" : "Hear"}
         </button>
@@ -774,16 +841,19 @@ function PracticeSurface({
           <div className="workout-rounds compact-list">
             {workoutRounds.map((round) => {
               const result = roundResults[`${lesson.id}:${round.id}`];
+              const locked = round.requiresPriorRun && !(lessonProgress?.runs > 0);
               return (
                 <button
-                  className={`workout-round ${round.id === activeRoundId ? "active" : ""}`}
+                  className={`workout-round ${round.id === activeRoundId ? "active" : ""} ${locked ? "locked" : ""}`}
+                  disabled={locked}
                   key={round.id}
                   onClick={() => onWorkoutRound(round)}
+                  title={locked ? "Run the lesson once to unlock Cold Recall." : round.win}
                 >
                   <span>{round.badge}</span>
                   <strong>{round.title}</strong>
-                  <small>{round.instruction(practiceLesson)}</small>
-                  <em>{result ? `${result.score} / ${result.focus}` : round.win}</em>
+                  <small>{locked ? "Locked until one real run creates something to retrieve." : round.instruction(practiceLesson)}</small>
+                  <em>{result ? `${result.score} / ${result.focus}` : locked ? "Needs 1 run" : round.win}</em>
                 </button>
               );
             })}
