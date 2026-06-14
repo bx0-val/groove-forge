@@ -56,7 +56,7 @@ If MIDI is unavailable, the app remains usable through:
 ## Local Development
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 

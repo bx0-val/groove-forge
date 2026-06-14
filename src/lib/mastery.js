@@ -9,6 +9,13 @@ export const masteryDimensions = [
     fallbackCategory: "echo"
   },
   {
+    id: "recall",
+    label: "Recall",
+    standard: "Can produce the phrase from memory without immediate playback.",
+    roundId: "recall",
+    fallbackCategory: "echo"
+  },
+  {
     id: "pocket",
     label: "Pocket",
     standard: "Can place the lick inside the groove.",
@@ -42,6 +49,11 @@ function scoreFromRound(roundResults, lessonId, roundId) {
   return roundResults?.[`${lessonId}:${roundId}`]?.focus ?? roundResults?.[`${lessonId}:${roundId}`]?.score ?? null;
 }
 
+function hasStrongShadowEvidence(roundResults, lessonId) {
+  const result = roundResults?.[`${lessonId}:shadow`];
+  return Boolean(result && result.score >= 75 && result.focus >= 75);
+}
+
 function levelFromScore(score) {
   if (score >= 86) return "clean";
   if (score >= 72) return "usable";
@@ -67,9 +79,13 @@ export function evaluateLessonMastery(lesson, progress = {}, roundResults = {}) 
     ? Math.round(dimensions.reduce((sum, dimension) => sum + dimension.score, 0) / dimensions.length)
     : 0;
   const completeCount = dimensions.filter((dimension) => dimension.complete).length;
+  const recall = dimensions.find((dimension) => dimension.id === "recall");
+  const strongShadow = hasStrongShadowEvidence(roundResults, lesson.id);
+  const eligibleDimensions = strongShadow ? dimensions : dimensions.filter((dimension) => dimension.id !== "recall");
   const nextDimension =
-    dimensions.find((dimension) => dimension.score < 55) ??
-    [...dimensions].sort((a, b) => a.score - b.score)[0] ??
+    (strongShadow && recall?.score < 75 ? recall : null) ??
+    eligibleDimensions.find((dimension) => dimension.score < 55) ??
+    [...eligibleDimensions].sort((a, b) => a.score - b.score)[0] ??
     dimensions[0];
   const nextRound = workoutRounds.find((round) => round.id === nextDimension.roundId) ?? workoutRounds[0];
 
@@ -81,7 +97,7 @@ export function evaluateLessonMastery(lesson, progress = {}, roundResults = {}) 
     dimensions,
     nextRound,
     nextDimension,
-    readyForTaste: average >= 78 && completeCount >= 4
+    readyForTaste: average >= 78 && completeCount >= 5
   };
 }
 

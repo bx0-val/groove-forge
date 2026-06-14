@@ -222,6 +222,10 @@ export default function App() {
   useEffect(() => () => clearTimers(false), [clearTimers]);
 
   async function playDemo() {
+    if (activeRoundId === "recall") {
+      setCoachNote("Cold Recall contract: no Hear button, no demo. Retrieve first, then score the take.");
+      return;
+    }
     clearTimers();
     const demoRequest = demoRequestRef.current + 1;
     demoRequestRef.current = demoRequest;
@@ -286,6 +290,10 @@ export default function App() {
   }
 
   function startWorkoutRound(round) {
+    if (round.requiresPriorRun && !(progress[lesson.id]?.runs > 0)) {
+      setCoachNote("Cold Recall unlocks after one real run. Build the trace first, then retrieve it.");
+      return;
+    }
     const nextVariant = phraseVariants.find((variant) => variant.id === round.variantId) ?? phraseVariants[0];
     const nextLesson = applyPhraseVariant(lesson, nextVariant);
     setSelectedVariantId(nextVariant.id);
@@ -480,10 +488,10 @@ export default function App() {
             <p>{lesson.level} - {lesson.subtitle}</p>
           </div>
           <div className="topbar-actions">
-            <button className={`icon-toggle ${focusMode ? "on" : ""}`} onClick={() => setFocusMode((value) => !value)} title="Toggle focus mode">
+            <button className={`icon-toggle ${focusMode ? "on" : ""}`} onClick={() => setFocusMode((value) => !value)} title="Toggle focus mode" aria-label="Toggle focus mode" aria-pressed={focusMode}>
               <EyeOff size={18} />
             </button>
-            <button className={`icon-toggle ${pulseOn ? "on" : ""}`} onClick={() => setPulseOn((value) => !value)} title="Toggle pulse">
+            <button className={`icon-toggle ${pulseOn ? "on" : ""}`} onClick={() => setPulseOn((value) => !value)} title="Toggle pulse" aria-label="Toggle pulse" aria-pressed={pulseOn}>
               <Volume2 size={18} />
             </button>
             <button className="secondary-button" onClick={resetRun}>
@@ -519,6 +527,7 @@ export default function App() {
           activeRoundId={activeRoundId}
           roundResults={roundResults}
           mastery={mastery}
+          lessonProgress={progress[lesson.id]}
           onNextRep={() => startWorkoutRound(mastery.nextRound)}
           canPractice={heardDemo}
           onEarAnswer={answerEarCheck}
@@ -539,6 +548,9 @@ export default function App() {
           countInBeat={countInBeat}
           countInProgress={countInProgress}
           demoProgress={demoProgress}
+          lastScore={lastScore}
+          onCompare={playComparison}
+          onMicrodrill={startMicrodrill}
           onScreenNote={(midiNote) => handleNote(createNoteEvent(midiNote, 98, "screen"))}
         />
       </section>
@@ -548,6 +560,7 @@ export default function App() {
         <MasteryCard
           mastery={mastery}
           readiness={readiness}
+          lessonProgress={progress[lesson.id]}
           onNextRep={() => startWorkoutRound(mastery.nextRound)}
           disabled={isRunning}
         />
@@ -611,6 +624,8 @@ function PracticeSurface({
   onWorkoutRound,
   activeRoundId,
   roundResults,
+  mastery,
+  lessonProgress,
   onNextRep,
   canPractice,
   onEarAnswer,
@@ -631,6 +646,9 @@ function PracticeSurface({
   countInBeat,
   countInProgress,
   demoProgress,
+  lastScore,
+  onCompare,
+  onMicrodrill,
   onScreenNote
 }) {
   const selectedEar = earAnswer !== null ? lesson.earCheck.options[earAnswer] : null;
@@ -638,44 +656,102 @@ function PracticeSurface({
   const activeRound = workoutRounds.find((round) => round.id === activeRoundId);
   const mainInstruction = activeRound?.instruction(practiceLesson) ?? practiceLesson.activeVariant?.rule ?? lesson.stealThis;
   const phraseLabel = notesRevealed ? practiceLesson.demoPhrase.map((note) => note.note.replace(/\d$/, "")).join(" - ") : "Listen first";
+  const repState = lastScore ? "fix" : demoPlaying || isCountingIn || startedAt ? "playing" : heardDemo ? "recall" : "listen";
+  const weakestCategory = lastScore?.categories?.length ? [...lastScore.categories].sort((a, b) => a.score - b.score)[0] : null;
+  const recallContract = activeRoundId === "recall"
+    ? { label: "Recall", title: "Cold Recall is live: no Hear, no demo.", body: "Retrieve first, then score the take. Playback comes after the attempt, not before it." }
+    : { label: "Recall", title: "Retrieve it before your hands get help.", body: "Sing or finger it from memory, then press Copy." };
+  const repContract = {
+    listen: { label: "Listen", title: "Hear the source like a hook, not a diagram.", body: "Press Hear. Your first job is encoding the sound before labels make it feel easier than it is." },
+    recall: recallContract,
+    playing: { label: "Play", title: isCountingIn ? `Count-in ${countInBeat}: enter on the next 1.` : "Transport moving. Commit to the take.", body: runInstruction ?? "Stay with the groove. No stopping to negotiate with the mistake." },
+    fix: { label: "Fix", title: "Fix one thing, then rep again.", body: weakestCategory ? `${weakestCategory.label}: ${weakestCategory.detail}` : "Replay the model against your take, then microdrill the smallest miss." }
+  }[repState];
 
   return (
     <section className="practice-surface">
-      <div className="practice-head">
-        <div className="lesson-intent">
-          <div className="source-kicker">{lesson.world}</div>
+      <section className={`mission-cockpit ${repState} ${activeRoundId === "recall" ? "cold-recall" : ""}`} aria-live="polite" aria-label="Practice cockpit">
+        <div className="mission-copy">
+          <div className="cockpit-kicker">
+            <span>{lesson.world}</span>
+            <em>{lesson.level}</em>
+          </div>
           <h2>{activeRound ? activeRound.title : practiceLesson.activeVariant?.title ?? "Teacher lick"}</h2>
-          <p>{mainInstruction}</p>
+          <p className="mission-brief">{mainInstruction}</p>
+          <div className="mission-contract">
+            <span>Today&apos;s rep contract</span>
+            <strong>{repContract.title}</strong>
+            <p>{repContract.body}</p>
+          </div>
         </div>
 
-        <div className="listen-card-lite">
-          <div className="stepper compact" aria-label="Lesson steps">
-            {lessonSteps.map((step) => (
-              <div className={`step-pill ${activeStep === step.id ? "active" : ""}`} key={step.id} title={step.verb}>
-                <span>{step.label}</span>
-              </div>
-            ))}
-          </div>
-          <div className="ear-check-inline">
-            <strong>Ear check</strong>
-            <p>{heardDemo ? lesson.earCheck.question : "Hear the phrase before choosing."}</p>
-            <div className="ear-options">
-              {lesson.earCheck.options.map((option, index) => (
-                <button
-                  className={`ear-option ${earAnswer === index ? "selected" : ""} ${earAnswer === index && earCorrect ? "correct" : ""}`}
-                  disabled={!heardDemo}
-                  key={option}
-                  onClick={() => onEarAnswer(index)}
-                  title="Ear checks unlock labels by making you listen first."
-                >
-                  {option}
-                </button>
-              ))}
+        <div className="loop-console" aria-label="Learning loop">
+          {[
+            ["Listen", "encode the sound", "listen"],
+            ["Retrieve", activeRoundId === "recall" ? "no Hear crutch" : "sing/finger from memory", "recall"],
+            ["Play", isCountingIn ? `count-in ${countInBeat}` : "commit the take", "playing"],
+            ["Fix", weakestCategory?.label ?? "one miss", "fix"]
+          ].map(([label, detail, state], index) => (
+            <div className={`loop-step ${repState === state ? "active" : ""}`} key={label}>
+              <span>{index + 1}</span>
+              <strong>{label}</strong>
+              <em>{detail}</em>
             </div>
-            {selectedEar && <small>{earCorrect ? lesson.earCheck.success : lesson.earCheck.miss}</small>}
+          ))}
+        </div>
+
+        <div className="action-stack">
+          <div className="readiness-card">
+            <span>Readiness cue</span>
+            <strong>{lastScore ? `${lastScore.score} scored` : isCountingIn ? "Count-in armed" : startedAt ? "Take running" : heardDemo ? "Ready to retrieve" : "Listen first"}</strong>
+            <em>{activeRoundId === "recall" ? "Cold Recall: playback locked" : mastery.nextRound.title}</em>
+          </div>
+          <button
+            className="primary-button hero-cta"
+            onClick={repState === "listen" ? onDemo : repState === "fix" ? onMicrodrill : onCopy}
+            disabled={(repState === "listen" && activeRoundId === "recall") || (repState !== "listen" && !canPractice && repState !== "fix")}
+            title={repState === "listen" && activeRoundId === "recall" ? "Cold Recall disables demo playback until after the take." : undefined}
+          >
+            {repState === "listen" ? <Headphones size={20} /> : repState === "fix" ? <Target size={20} /> : <Play size={20} />}
+            {repState === "listen" ? (demoPlaying ? "Playing" : "Hear the model") : repState === "fix" ? "Microdrill the miss" : "Start Copy take"}
+          </button>
+          <div className="cockpit-actions">
+            <button className="secondary-button" onClick={onCopy} disabled={!canPractice}>
+              <Play size={16} /> Copy
+            </button>
+            <button className="secondary-button" onClick={onNextRep}>
+              <Target size={16} /> Next rep
+            </button>
+            <button className="secondary-button" onClick={onVary} disabled={!canPractice}>
+              <Sparkles size={16} /> Twist
+            </button>
+            {lastScore && (
+              <button className="secondary-button" onClick={onCompare} disabled={!events.length}>
+                <Headphones size={16} /> A/B
+              </button>
+            )}
           </div>
         </div>
-      </div>
+
+        <div className="ear-check-inline cockpit-ear">
+          <strong>Ear check</strong>
+          <p>{heardDemo ? lesson.earCheck.question : "Hear the phrase before choosing."}</p>
+          <div className="ear-options">
+            {lesson.earCheck.options.map((option, index) => (
+              <button
+                className={`ear-option ${earAnswer === index ? "selected" : ""} ${earAnswer === index && earCorrect ? "correct" : ""}`}
+                disabled={!heardDemo}
+                key={option}
+                onClick={() => onEarAnswer(index)}
+                title="Ear checks unlock labels by making you listen first."
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+          {selectedEar && <small>{earCorrect ? lesson.earCheck.success : lesson.earCheck.miss}</small>}
+        </div>
+      </section>
 
       <div className="practice-meta" aria-label="Practice targets">
         <Tooltip label="Form" tip="The current version of the lick you are practicing.">
@@ -734,25 +810,6 @@ function PracticeSurface({
 
       <VirtualKeyboard lesson={practiceLesson} onNote={onScreenNote} />
 
-      <div className="coach-actions">
-        <button className="primary-button" onClick={onDemo}>
-          <Headphones size={16} />
-          {demoPlaying ? "Playing" : "Hear"}
-        </button>
-        <button className="secondary-button" onClick={onCopy} disabled={!canPractice}>
-          <Play size={16} />
-          Copy
-        </button>
-        <button className="secondary-button" onClick={onNextRep}>
-          <Target size={16} />
-          Next rep
-        </button>
-        <button className="secondary-button" onClick={onVary} disabled={!canPractice}>
-          <Sparkles size={16} />
-          Twist
-        </button>
-      </div>
-
       <div className="guidance-dock">
         <GuideDrawer title="Choose Lick Form" icon={<Disc3 size={16} />} tip="Switch forms when you want to isolate a smaller version of the same idea.">
           <div className="form-options compact-list">
@@ -774,16 +831,19 @@ function PracticeSurface({
           <div className="workout-rounds compact-list">
             {workoutRounds.map((round) => {
               const result = roundResults[`${lesson.id}:${round.id}`];
+              const locked = round.requiresPriorRun && !(lessonProgress?.runs > 0);
               return (
                 <button
-                  className={`workout-round ${round.id === activeRoundId ? "active" : ""}`}
+                  className={`workout-round ${round.id === activeRoundId ? "active" : ""} ${locked ? "locked" : ""}`}
+                  disabled={locked}
                   key={round.id}
                   onClick={() => onWorkoutRound(round)}
+                  title={locked ? "Run the lesson once to unlock Cold Recall." : round.win}
                 >
                   <span>{round.badge}</span>
                   <strong>{round.title}</strong>
-                  <small>{round.instruction(practiceLesson)}</small>
-                  <em>{result ? `${result.score} / ${result.focus}` : round.win}</em>
+                  <small>{locked ? "Locked until one real run creates something to retrieve." : round.instruction(practiceLesson)}</small>
+                  <em>{result ? `${result.score} / ${result.focus}` : locked ? "Needs 1 run" : round.win}</em>
                 </button>
               );
             })}
@@ -983,7 +1043,7 @@ function ScoreCard({ score, title, note }) {
   );
 }
 
-function MasteryCard({ mastery, readiness, onNextRep, disabled }) {
+function MasteryCard({ mastery, readiness, lessonProgress, onNextRep, disabled }) {
   return (
     <div className="mastery-card">
       <div className="panel-heading">
@@ -1003,16 +1063,19 @@ function MasteryCard({ mastery, readiness, onNextRep, disabled }) {
         </div>
       </div>
       <div className="mastery-list">
-        {mastery.dimensions.map((dimension) => (
-          <div className="mastery-row" key={dimension.id}>
+        {mastery.dimensions.map((dimension) => {
+          const recallLocked = dimension.id === "recall" && !(lessonProgress?.runs > 0);
+          return (
+          <div className={`mastery-row ${recallLocked ? "locked" : ""}`} key={dimension.id}>
             <div>
               <strong>{dimension.label}</strong>
               <span>{dimension.standard}</span>
             </div>
-            <em>{dimension.score}</em>
-            <div className="meter"><span style={{ width: `${dimension.score}%` }} /></div>
+            <em>{recallLocked ? "LOCK" : dimension.score}</em>
+            <div className="meter"><span style={{ width: `${recallLocked ? 0 : dimension.score}%` }} /></div>
           </div>
-        ))}
+          );
+        })}
       </div>
       <button className="primary-button mastery-action" onClick={onNextRep} disabled={disabled}>
         <Target size={16} />
@@ -1092,6 +1155,7 @@ function VirtualKeyboard({ lesson, onNote }) {
               key={midi}
               className={`piano-key ${black ? "black" : "white"} ${inPalette ? "allowed" : ""} ${isTarget ? "target" : ""}`}
               onClick={() => onNote(midi)}
+              aria-label={`Play ${note}`}
             >
               <span>{pitch}</span>
               <small>{KEY_LABELS[index]}</small>

@@ -5,6 +5,8 @@
   color: #f7f1e8;
   font-synthesis: none;
   text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   --bg: #101314;
   --panel: #191e1f;
   --panel-2: #202728;
@@ -36,6 +38,23 @@ body {
 
 button {
   font: inherit;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p,
+small,
+li {
+  text-wrap: pretty;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
 }
 
 .app-shell {
@@ -294,6 +313,20 @@ button {
   justify-content: center;
   gap: 8px;
   cursor: pointer;
+  transition: transform 120ms ease, border-color 160ms ease, background-color 160ms ease, opacity 160ms ease, filter 160ms ease;
+}
+
+.primary-button:enabled:active,
+.secondary-button:enabled:active,
+.icon-toggle:enabled:active,
+.lesson-card:enabled:active,
+.form-option:enabled:active,
+.workout-round:enabled:active,
+.remix-option:enabled:active,
+.ear-option:enabled:active,
+.riff-row:enabled:active,
+.piano-key:enabled:active {
+  transform: scale(0.96);
 }
 
 .primary-button {
@@ -415,6 +448,8 @@ button {
   border: 1px solid rgba(242, 174, 69, 0.35);
   font-size: 11px;
   cursor: help;
+  min-width: 40px;
+  min-height: 40px;
 }
 
 .tooltip-bubble {
@@ -798,6 +833,7 @@ button {
   cursor: pointer;
   display: grid;
   gap: 3px;
+  transition: transform 120ms ease, border-color 160ms ease, background-color 160ms ease, opacity 160ms ease;
 }
 
 .form-option:hover,
@@ -809,6 +845,15 @@ button {
 .workout-round.active {
   border-color: rgba(242, 174, 69, 0.68);
   background: rgba(242, 174, 69, 0.09);
+}
+
+.workout-round:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.workout-round.locked span {
+  background: var(--soft);
 }
 
 .form-option span,
@@ -873,7 +918,7 @@ button {
 }
 
 .ear-option {
-  min-height: 38px;
+  min-height: 40px;
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--text);
@@ -895,6 +940,99 @@ button {
 .ear-option.correct {
   border-color: rgba(48, 214, 189, 0.75);
   background: rgba(48, 214, 189, 0.1);
+}
+
+
+.rep-contract {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(48, 214, 189, 0.24);
+  border-radius: 12px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  background:
+    radial-gradient(circle at 18px 18px, rgba(242, 174, 69, 0.18), transparent 34px),
+    linear-gradient(135deg, rgba(48, 214, 189, 0.11), rgba(242, 174, 69, 0.055)),
+    rgba(0, 0, 0, 0.18);
+}
+
+.rep-contract-copy {
+  position: relative;
+  display: grid;
+  gap: 5px;
+}
+
+.rep-contract-copy span,
+.rep-fix-panel span {
+  color: var(--amber);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rep-contract-copy h3 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.05;
+}
+
+.rep-contract-copy p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.rep-loop {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: end;
+}
+
+.rep-loop span {
+  min-height: 40px;
+  border: 1px solid rgba(247, 241, 232, 0.12);
+  border-radius: 999px;
+  padding: 10px 12px;
+  color: var(--muted);
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rep-loop span.active {
+  color: #0d1212;
+  border-color: rgba(242, 174, 69, 0.7);
+  background: var(--amber);
+}
+
+.rep-fix-panel {
+  grid-column: 1 / -1;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr)) auto auto;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.rep-fix-panel > div {
+  border: 1px solid rgba(247, 241, 232, 0.11);
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.rep-fix-panel strong {
+  display: block;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
 }
 
 .coach-actions {
@@ -1297,8 +1435,8 @@ button {
 
 .mastery-summary {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 9px;
+  grid-template-columns: 1fr;
+  gap: 8px;
 }
 
 .mastery-summary > div {
@@ -1882,8 +2020,14 @@ button {
   .feedback-panel,
   .stepper,
   .practice-meta,
-  .listen-card-lite {
+  .listen-card-lite,
+  .rep-contract,
+  .rep-fix-panel {
     grid-template-columns: 1fr;
+  }
+
+  .rep-loop {
+    justify-content: start;
   }
 
   .rep-cockpit {
@@ -1970,5 +2114,413 @@ button {
 
   .piano-key.black {
     height: 58px;
+  }
+}
+
+
+
+
+/* Mission cockpit: make the first-load surface feel like a jazz lab, not a lesson page. */
+.practice-surface {
+  border-radius: 22px;
+  padding: clamp(18px, 2.2vw, 30px);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(242, 174, 69, 0.22), transparent 34%),
+    radial-gradient(circle at 86% 10%, rgba(48, 214, 189, 0.18), transparent 30%),
+    linear-gradient(90deg, rgba(99, 58, 31, 0.58) 0 12px, transparent 12px calc(100% - 12px), rgba(99, 58, 31, 0.58) calc(100% - 12px)),
+    #121515;
+}
+
+.mission-cockpit {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(190px, 0.85fr) minmax(178px, 0.55fr);
+  gap: 12px;
+  min-height: 330px;
+  border: 1px solid rgba(242, 174, 69, 0.38);
+  border-radius: 20px;
+  padding: clamp(18px, 2vw, 28px);
+  background:
+    linear-gradient(90deg, rgba(247, 241, 232, 0.035) 0 1px, transparent 1px 8.33%),
+    repeating-linear-gradient(0deg, rgba(48, 214, 189, 0.05) 0 1px, transparent 1px 34px),
+    radial-gradient(circle at 20% 20%, rgba(242, 174, 69, 0.20), transparent 34%),
+    linear-gradient(135deg, rgba(32, 39, 40, 0.96), rgba(14, 17, 17, 0.98));
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255,255,255,0.035);
+}
+
+.mission-cockpit::before {
+  content: "TAPE MACHINE / PIANO ROLL";
+  position: absolute;
+  right: 20px;
+  top: 14px;
+  color: rgba(247, 241, 232, 0.18);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+}
+
+.mission-cockpit.cold-recall {
+  border-color: rgba(255, 109, 93, 0.56);
+  background:
+    linear-gradient(90deg, rgba(255, 109, 93, 0.06) 0 1px, transparent 1px 8.33%),
+    repeating-linear-gradient(0deg, rgba(242, 174, 69, 0.055) 0 1px, transparent 1px 34px),
+    radial-gradient(circle at 20% 20%, rgba(255, 109, 93, 0.18), transparent 34%),
+    linear-gradient(135deg, rgba(32, 39, 40, 0.96), rgba(14, 17, 17, 0.98));
+}
+
+.mission-copy,
+.loop-console,
+.action-stack,
+.cockpit-ear {
+  position: relative;
+  z-index: 1;
+}
+
+.mission-copy {
+  display: grid;
+  align-content: space-between;
+  gap: 16px;
+}
+
+.cockpit-kicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.cockpit-kicker span,
+.cockpit-kicker em,
+.mission-contract span,
+.readiness-card span {
+  width: fit-content;
+  border: 1px solid rgba(48, 214, 189, 0.34);
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: var(--teal);
+  background: rgba(48, 214, 189, 0.08);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cockpit-kicker em {
+  color: var(--amber);
+  border-color: rgba(242, 174, 69, 0.34);
+  background: rgba(242, 174, 69, 0.08);
+}
+
+.mission-copy h2 {
+  margin: 0;
+  max-width: 760px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 4.8vw, 70px);
+  line-height: 0.88;
+  letter-spacing: -0.055em;
+}
+
+.mission-brief {
+  max-width: 760px;
+  margin: 0;
+  color: #f2c66e;
+  font-size: clamp(17px, 1.45vw, 22px);
+  line-height: 1.28;
+}
+
+.mission-contract,
+.readiness-card {
+  border: 1px solid rgba(247, 241, 232, 0.14);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.28);
+  box-shadow: inset 0 0 22px rgba(0,0,0,0.22);
+}
+
+.mission-contract {
+  display: grid;
+  gap: 8px;
+}
+
+.mission-contract strong {
+  font-size: clamp(20px, 2vw, 30px);
+  line-height: 1.05;
+}
+
+.mission-contract p,
+.readiness-card em,
+.loop-step em,
+.cockpit-ear p,
+.cockpit-ear small {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.42;
+}
+
+.loop-console {
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.loop-step {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 4px 12px;
+  align-items: center;
+  min-height: 68px;
+  border: 1px solid rgba(247, 241, 232, 0.12);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.loop-step::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: rgba(247, 241, 232, 0.13);
+}
+
+.loop-step span {
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: #101314;
+  background: rgba(247, 241, 232, 0.72);
+  font-weight: 950;
+  font-variant-numeric: tabular-nums;
+}
+
+.loop-step strong {
+  font-size: 20px;
+}
+
+.loop-step.active {
+  transform: translateX(4px);
+  border-color: rgba(242, 174, 69, 0.78);
+  background: linear-gradient(135deg, rgba(242, 174, 69, 0.18), rgba(48, 214, 189, 0.08));
+  box-shadow: 0 12px 34px rgba(0,0,0,0.28);
+}
+
+.loop-step.active::after {
+  width: 7px;
+  background: var(--amber);
+  box-shadow: 0 0 24px rgba(242, 174, 69, 0.72);
+}
+
+.loop-step.active span {
+  background: var(--amber);
+}
+
+.action-stack {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.readiness-card {
+  display: grid;
+  gap: 7px;
+}
+
+.readiness-card strong {
+  display: block;
+  font-size: clamp(25px, 2.8vw, 38px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.hero-cta {
+  min-height: 78px;
+  border-radius: 18px;
+  padding-inline: 10px;
+  font-size: 18px;
+  box-shadow: 0 16px 34px rgba(242, 174, 69, 0.18), inset 0 -3px 0 rgba(0,0,0,0.25);
+}
+
+.cockpit-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.cockpit-actions .secondary-button {
+  min-height: 52px;
+  border-radius: 13px;
+  background: rgba(247, 241, 232, 0.055);
+}
+
+.cockpit-ear {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 120px minmax(220px, 1fr) minmax(260px, 0.9fr) auto;
+  gap: 12px;
+  align-items: center;
+  border-top: 1px solid rgba(247, 241, 232, 0.12);
+  padding-top: 14px;
+}
+
+.cockpit-ear strong {
+  color: var(--amber);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.cockpit-ear .ear-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.practice-meta {
+  margin-top: 2px;
+}
+
+.practice-surface .groove-board {
+  margin-top: 4px;
+  border: 1px solid rgba(247, 241, 232, 0.12);
+  border-radius: 18px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(247, 241, 232, 0.035), rgba(0, 0, 0, 0.08));
+}
+
+.lane {
+  height: 260px;
+  min-height: 260px;
+  border-radius: 16px;
+  border-color: rgba(48, 214, 189, 0.28);
+  background:
+    linear-gradient(180deg, rgba(48, 214, 189, 0.10), transparent 42%),
+    repeating-linear-gradient(0deg, rgba(247, 241, 232, 0.07) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(90deg, rgba(242, 174, 69, 0.12) 0 1px, transparent 1px 12.5%),
+    #0d1111;
+  box-shadow: inset 0 0 38px rgba(0,0,0,0.38);
+}
+
+.note-chip {
+  border-radius: 10px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.26);
+}
+
+.coach-actions {
+  opacity: 0.42;
+  transform: scale(0.96);
+}
+
+.mastery-row.locked {
+  opacity: 1;
+  border-color: rgba(255, 109, 93, 0.28);
+  background: rgba(255, 109, 93, 0.045);
+}
+
+.mastery-row.locked em {
+  color: var(--red);
+}
+
+@media (max-width: 1180px) {
+  .mission-cockpit {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .action-stack,
+  .cockpit-ear {
+    grid-column: 1 / -1;
+  }
+
+  .action-stack {
+    grid-template-columns: 0.7fr 1fr 1fr;
+    align-items: stretch;
+  }
+
+  .cockpit-actions {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 760px) {
+  .practice-surface {
+    border-radius: 18px;
+    padding: 12px;
+  }
+
+  .mission-cockpit,
+  .action-stack,
+  .cockpit-ear {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-cockpit {
+    min-height: 0;
+    padding: 16px;
+  }
+
+  .mission-copy h2 {
+    font-size: 42px;
+  }
+
+  .mission-brief {
+    font-size: 17px;
+  }
+
+  .loop-console {
+    grid-template-rows: none;
+  }
+
+  .loop-step {
+    min-height: 58px;
+  }
+
+  .cockpit-ear .ear-options,
+  .cockpit-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-cta {
+    min-height: 70px;
+  }
+
+  .practice-surface .groove-board {
+    padding: 12px;
+  }
+
+  .lane {
+    height: 210px;
+    min-height: 210px;
+  }
+
+  .coach-actions {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .primary-button:enabled:active,
+  .secondary-button:enabled:active,
+  .icon-toggle:enabled:active,
+  .lesson-card:enabled:active,
+  .form-option:enabled:active,
+  .workout-round:enabled:active,
+  .remix-option:enabled:active,
+  .ear-option:enabled:active,
+  .riff-row:enabled:active,
+  .piano-key:enabled:active {
+    transform: none !important;
   }
 }

@@ -3,7 +3,6 @@ import { createNoteEvent, KEYBOARD_MAP, normalizeMidiMessage } from "../lib/musi
 
 export function useMidi(onNote) {
   const [status, setStatus] = useState("idle");
-  const [inputs, setInputs] = useState([]);
   const [activeInput, setActiveInput] = useState(null);
   const noteHandler = useRef(onNote);
 
@@ -25,7 +24,6 @@ export function useMidi(onNote) {
       setStatus("requesting");
       const access = await navigator.requestMIDIAccess({ sysex: false });
       const nextInputs = [...access.inputs.values()];
-      setInputs(nextInputs.map((input) => ({ id: input.id, name: input.name || "MIDI input" })));
       setStatus(nextInputs.length ? "ready" : "no-inputs");
 
       nextInputs.forEach((input) => {
@@ -43,7 +41,6 @@ export function useMidi(onNote) {
       setActiveInput(nextInputs[0]?.name ?? null);
       access.onstatechange = () => {
         const refreshed = [...access.inputs.values()];
-        setInputs(refreshed.map((input) => ({ id: input.id, name: input.name || "MIDI input" })));
         setStatus(refreshed.length ? "ready" : "no-inputs");
       };
     } catch (error) {
@@ -62,7 +59,7 @@ export function useMidi(onNote) {
   }, [emitSimulated]);
 
   return useMemo(
-    () => ({ status, inputs, activeInput, requestAccess, emitSimulated }),
-    [status, inputs, activeInput, requestAccess, emitSimulated]
+    () => ({ status, activeInput, requestAccess, emitSimulated }),
+    [status, activeInput, requestAccess, emitSimulated]
   );
 }
