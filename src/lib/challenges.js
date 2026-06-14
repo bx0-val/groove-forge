@@ -781,7 +781,3 @@ export const lessons = [
     scoringWeights: { echo: 25, palette: 15, target: 25, space: 20, motif: 10, dynamics: 5 }
   }
 ];
-
-export function getLesson(id) {
-  return lessons.find((lesson) => lesson.id === id) ?? lessons[0];
-}

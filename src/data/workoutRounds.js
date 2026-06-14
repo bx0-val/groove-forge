@@ -50,7 +50,3 @@ export const workoutRounds = [
     win: "Variation keeps the fingerprint."
   }
 ];
-
-export function getWorkoutRound(id) {
-  return workoutRounds.find((round) => round.id === id) ?? workoutRounds[0];
-}
